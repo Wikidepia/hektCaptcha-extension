@@ -16,18 +16,20 @@
     "default_title": "Hektcaptcha Extension",
     "default_popup": "popup.html"
   },
-  "permissions": [
-    "storage"
+  "permissions": ["storage"],
+  "web_accessible_resources": [
+    {
+      "resources": ["models/*"],
+      "matches": ["<all_urls>"]
+    }
   ],
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "run_at": "document_idle",
-      "js": [
-        "contentScript.js"
-      ]
+      "matches": ["*://*.hcaptcha.com/captcha/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_end",
+      "all_frames": true,
+      "match_about_blank": false
     }
   ]
 }
