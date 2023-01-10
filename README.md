@@ -1,6 +1,6 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Hektcaptcha Extension
+# <img src="public/icons/icon_48.png" width="45" align="left"> hektCaptcha Extension
 
-My Chrome Extension
+Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Features
 
