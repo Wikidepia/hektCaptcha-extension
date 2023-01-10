@@ -19,7 +19,7 @@
   "permissions": ["storage"],
   "web_accessible_resources": [
     {
-      "resources": ["models/*"],
+      "resources": ["models/*", "dist/*"],
       "matches": ["<all_urls>"]
     }
   ],

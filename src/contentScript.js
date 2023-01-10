@@ -14,11 +14,14 @@
 const Jimp = require('jimp');
 const ort = require('onnxruntime-web');
 
+const extension_id = chrome.runtime.id;
+
 // Modify ort wasm path
 ort.env.wasm.wasmPaths = {
-    "ort-wasm-threaded.wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/ort-wasm-threaded.wasm",
-    "ort-wasm-simd.wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/ort-wasm-simd.wasm",
-    "ort-wasm-simd-threaded.wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@latest/dist/ort-wasm-simd-threaded.wasm",
+    "ort-wasm.wasm": `chrome-extension://${extension_id}/dist/ort-wasm.wasm`,
+    "ort-wasm-threaded.wasm": `chrome-extension://${extension_id}/dist/ort-wasm-threaded.wasm`,
+    "ort-wasm-simd.wasm": `chrome-extension://${extension_id}/dist/ort-wasm-simd.wasm`,
+    "ort-wasm-simd-threaded.wasm": `chrome-extension://${extension_id}/dist/ort-wasm-simd-threaded.wasm`,
 };
 
 class Time {
@@ -239,7 +242,6 @@ function imageDataToTensor(image, dims) {
             await Time.sleep(500);
         }
 
-        const extension_id = chrome.runtime.id;
         const {
             task,
             cells,

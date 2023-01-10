@@ -58,6 +58,14 @@ const common = {
         },
       ],
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'dist/*.wasm',
+          context: 'node_modules/onnxruntime-web/',
+        },
+      ],
+    }),
     // Extract CSS into separate files
     new MiniCssExtractPlugin({
       filename: '[name].css',
