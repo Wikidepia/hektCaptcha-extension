@@ -255,50 +255,48 @@ function imageDataToTensor(image, dims) {
             .replace(/^a /gm, '')
             .replaceAll(' ', '_');
 
-        // Load model with name matching label
-        const session = await ort.InferenceSession.create(
-            `chrome-extension://${extension_id}/models/${label}.onnx`
-        );
+        chrome.runtime.sendMessage(
+            label,
+            async function (response) {
+                const model = await fetch(response.model)
+                const arrayBuffer = await model.arrayBuffer()
+                const session = await ort.InferenceSession.create(
+                    arrayBuffer
+                );
 
-        // Solve task
-        for (let i = 0; i < urls.length; i++) {
-            // Read image from URL
-            const image = await Jimp.default.read(urls[i]);
+                // Solve task
+                for (let i = 0; i < urls.length; i++) {
+                    // Read image from URL
+                    const image = await Jimp.default.read(urls[i]);
 
-            // Resize image to 64x64
-            image.resize(64, 64);
+                    // Resize image to 64x64
+                    image.resize(64, 64);
 
-            // Convert image data to tensor
-            const input = imageDataToTensor(image, [1, 3, 64, 64]);
+                    // Convert image data to tensor
+                    const input = imageDataToTensor(image, [1, 3, 64, 64]);
 
-            // Feed input tensor to model and run it
-            const feeds = {
-                'input.1': input,
-            };
-            const outputs = await session.run(feeds);
-            const output = outputs[session.outputNames[0]].data;
+                    // Feed input tensor to model and run it
+                    const feeds = {
+                        'input.1': input,
+                    };
+                    const outputs = await session.run(feeds);
+                    const output = outputs[session.outputNames[0]].data;
 
-            // Find index of maximum value in output array
-            const argmaxValue = output.indexOf(Math.max(...output));
+                    // Find index of maximum value in output array
+                    const argmaxValue = output.indexOf(Math.max(...output));
 
-            // If index is 0, click on cell (if it is not already selected)
-            if (argmaxValue === 0) {
-                if (!is_cell_selected(cells[i])) {
-                cells[i].click();
+                    // If index is 0, click on cell (if it is not already selected)
+                    if (argmaxValue === 0) {
+                        if (!is_cell_selected(cells[i])) {
+                        cells[i].click();
+                        }
+                    }
                 }
+                await Time.sleep(200);
+                submit();
             }
-        }
-        // let delay = parseInt(settings.hcaptcha_solve_delay_time);
-        // delay = delay ? delay : 3000;
-        // const delta = settings.hcaptcha_solve_delay ? (delay - (Time.time() - solve_start)) : 0;
-        // if (delta > 0) {
-        //     await Time.sleep(delta);
-        // }
-
-        await Time.sleep(200);
-        submit();
+        );
     }
-
 
     let was_solved = false;
     while (true) {

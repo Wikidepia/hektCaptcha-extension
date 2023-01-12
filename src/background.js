@@ -5,17 +5,27 @@
 // For more information on background script,
 // See https://developer.chrome.com/extensions/background_pages
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GREETINGS') {
-    const message = `Hi ${
-      sender.tab ? 'Con' : 'Pop'
-    }, my name is Bac. I am from Background. It's great to hear from you.`;
-
-    // Log message coming from the `request` parameter
-    console.log(request.payload.message);
-    // Send a response message
-    sendResponse({
-      message,
-    });
-  }
+const convertBlobToBase64 = blob => new Promise(resolve => {
+  const reader = new FileReader();
+  reader.readAsDataURL(blob);
+  reader.onloadend = () => {
+      const base64data = reader.result;
+      resolve(base64data);
+  };
 });
+
+
+chrome.runtime.onMessage.addListener(
+  function (request, sender, sendResponse) {
+    var model_url =
+      `https://github.com/QIN2DIM/hcaptcha-challenger/releases/download/model/${request}.onnx`
+    const fetchModel = async () => {
+      const response = await fetch(model_url);
+      const respBlob = await response.blob();
+      const base64 = await convertBlobToBase64(respBlob);
+      sendResponse({ model: base64 });
+    }
+    fetchModel()
+    return true;
+  }
+);
