@@ -9,15 +9,17 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Install
 
-[**Chrome** extension]() <!-- TODO: Add chrome extension link inside parenthesis -->
+[**Chrome** extension](https://github.com/Wikidepia/hektCaptcha-extension/releases)
+
+Download the latest `.crx` file and drag it to `chrome://extensions` page.
+
+## Acknowledgment
+
+This project is based on the MIT-licensed [NopeCHA extension](https://github.com/nopecha-ai/nopecha-extension). Using model from [hcaptcha-challenger](https://github.com/QIN2DIM/hcaptcha-challenger/).
 
 ## Contribution
 
 Suggestions and pull requests are welcomed!.
-
-## Credits
-
-This project is based on the MIT-licensed [NopeCHA extension](https://github.com/nopecha-ai/nopecha-extension). Using model from [hcaptcha-challenger](https://github.com/QIN2DIM/hcaptcha-challenger/).
 
 ---
 
