@@ -18,7 +18,7 @@ const convertBlobToBase64 = blob => new Promise(resolve => {
 chrome.runtime.onMessage.addListener(
   function (request, sender, sendResponse) {
     var model_url =
-      `https://github.com/QIN2DIM/hcaptcha-challenger/releases/download/model/${request}.onnx`
+      `https://github.com/Wikidepia/hektCaptcha-extension/releases/download/modelhub/${request}.ort`
     const fetchModel = async () => {
       const response = await fetch(model_url);
       const respBlob = await response.blob();
