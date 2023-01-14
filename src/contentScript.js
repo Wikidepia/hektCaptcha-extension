@@ -251,7 +251,9 @@ function imageDataToTensor(image, dims) {
 
         // Get label for image
         const label = task
-            .replace('Please click each image containing ', '')
+            .replace('Please click each image containing', '')
+            .replace('Please click on all images containing', '')
+            .trim()
             .replace(/^a /gm, '')
             .replaceAll(' ', '_');
 
@@ -288,11 +290,12 @@ function imageDataToTensor(image, dims) {
                     // If index is 0, click on cell (if it is not already selected)
                     if (argmaxValue === 0) {
                         if (!is_cell_selected(cells[i])) {
-                        cells[i].click();
+                            cells[i].click();
+                            await Time.sleep(100);
                         }
                     }
                 }
-                await Time.sleep(200);
+                await Time.sleep(500);
                 submit();
             }
         );
