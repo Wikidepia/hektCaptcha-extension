@@ -11,7 +11,13 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 [**Chrome** extension](https://github.com/Wikidepia/hektCaptcha-extension/releases)
 
-Download the latest `.crx` file and drag it to `chrome://extensions` page.
+How to use:
+
+1. Download the latest `.crx` file
+2. Unzip it to a folder 
+3. Open `chrome://extensions/` in Chrome
+4. Enable `Developer mode`
+5. Click `Load unpacked` and select the folder
 
 ## Acknowledgment
 
