@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener(
       const response = await fetch(model_url);
       const respBlob = await response.blob();
       const base64 = await convertBlobToBase64(respBlob);
-      sendResponse({ model: base64 });
+      sendResponse({ status: response.status, model: base64 });
     }
     fetchModel()
     return true;

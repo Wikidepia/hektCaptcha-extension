@@ -219,6 +219,15 @@ function imageDataToTensor(image, dims) {
         }
     }
 
+    function retry() {
+        try {
+            document.querySelector('.refresh.button')
+                .click();
+        } catch (e) {
+            console.error('error retrying', e);
+        }
+    }
+
     function is_cell_selected($cell) {
         return $cell.getAttribute('aria-pressed') === 'true';
     }
@@ -260,6 +269,10 @@ function imageDataToTensor(image, dims) {
         chrome.runtime.sendMessage(
             label,
             async function (response) {
+                if (response.status !== 200) {
+                    console.error('error getting model, refreshing captcha', response);
+                    return retry();
+                }
                 const model = await fetch(response.model)
                 const arrayBuffer = await model.arrayBuffer()
                 const session = await ort.InferenceSession.create(
