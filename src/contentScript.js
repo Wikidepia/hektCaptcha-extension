@@ -291,10 +291,7 @@ function imageDataToTensor(image, dims) {
                     const input = imageDataToTensor(image, [1, 3, 64, 64]);
 
                     // Feed input tensor to model and run it
-                    const feeds = {
-                        'input.1': input,
-                    };
-                    const outputs = await session.run(feeds);
+                    const outputs = await session.run({'input.1': input});
                     const output = outputs[session.outputNames[0]].data;
 
                     // Find index of maximum value in output array
