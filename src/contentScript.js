@@ -245,7 +245,7 @@ function imageDataToTensor(image, dims) {
         open_image_frame();
     }
 
-    async function on_image_frame() {
+    async function on_image_frame(settings) {
         if (document.querySelector('.display-language .text').textContent !== 'EN') {
             document.querySelector('.language-selector .option:nth-child(23)').click();
             await Time.sleep(500);
@@ -265,7 +265,7 @@ function imageDataToTensor(image, dims) {
             .trim()
             .replace(/^a /gm, '')
             .replaceAll(' ', '_');
-
+        
         chrome.runtime.sendMessage(
             label,
             async function (response) {
@@ -305,7 +305,8 @@ function imageDataToTensor(image, dims) {
                         }
                     }
                 }
-                await Time.sleep(500);
+
+                await Time.sleep(settings.solve_delay_time);
                 submit();
             }
         );
@@ -314,10 +315,15 @@ function imageDataToTensor(image, dims) {
     let was_solved = false;
     while (true) {
         await Time.sleep(1000);
-        if (is_widget_frame()) {
+        if (!chrome.runtime?.id) {
+            continue;
+        }
+
+        let settings = await chrome.storage.local.get(null)
+        if (is_widget_frame() && settings.auto_open) {
             await on_widget_frame();
-        } else if (is_image_frame()) {
-            await on_image_frame();
+        } else if (is_image_frame() && settings.auto_solve) {
+            await on_image_frame(settings);
         }
     }
 })();

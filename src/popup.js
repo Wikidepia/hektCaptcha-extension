@@ -10,103 +10,39 @@ import './popup.css';
   // To get storage access, we have to mention it in `permissions` property of manifest.json file
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
-    get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
+
+  function setupSetting() {
+    // Restore settings
+    chrome.storage.local.get(["auto_open", "auto_solve", "solve_delay_time"],
+      async (e) => {
+        for (const g of document.querySelectorAll(`.settings_toggle`))
+          g.classList.remove("on", "off"),
+          g.classList.add(e[g.dataset.settings] ? "on" : "off");
+
+        for (const g of document.querySelectorAll(`.settings_text`))
+          g.value = e[g.dataset.settings];
       });
-    },
-    set: (value, cb) => {
-      chrome.storage.sync.set(
-        {
-          count: value,
-        },
-        () => {
-          cb();
-        }
-      );
-    },
-  };
 
-  function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
-
-    document.getElementById('incrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
+    // Add change listener to settings
+    for (const g of document.querySelectorAll(`.settings_toggle`))
+      g.addEventListener("click", async () => {
+        var e = g.classList.contains("off");
+        await chrome.storage.local.set({
+            [g.dataset.settings]: e
+          }),
+          g.classList.remove("on", "off"),
+          g.classList.add(e ? "on" : "off")
       });
-    });
 
-    document.getElementById('decrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
-  }
-
-  function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
-
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
-      } else {
-        newCount = count;
-      }
-
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
-
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
-
-          chrome.tabs.sendMessage(
-            tab.id,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            }
-          );
+    for (const g of document.querySelectorAll(`.settings_text`))
+      g.addEventListener("change", async () => {
+        var e = g.value;
+        await chrome.storage.local.set({
+          [g.dataset.settings]: e
         });
       });
-    });
+
   }
 
-  function restoreCounter() {
-    // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
-        // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
-        });
-      } else {
-        setupCounter(count);
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    (response) => {
-      console.log(response.message);
-    }
-  );
+  document.addEventListener('DOMContentLoaded', setupSetting);
 })();

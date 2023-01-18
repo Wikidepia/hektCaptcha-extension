@@ -1,32 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>My Chrome Extension</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <div class="app">
-      <p class="counter-label">Counter</p>
-      <div id="counter" class="counter"></div>
-      <div class="button-container">
-        <button id="decrementBtn" class="button">-</button>
-        <button id="incrementBtn" class="button">+</button>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hektCaptcha</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <div class="tab" data-tab="hcaptcha">
+    <div class="header">
+
+      <div class="header_label_container">
+        <div class="header_label">hektCaptcha</div>
       </div>
-
-      <hr class="divider" />
-
-      <p class="title">Chrome Extension is Ready!</p>
-      <p class="subtitle">Start by updating <code>popup.html</code></p>
     </div>
 
-    <script src="popup.js"></script>
+    <div
+      style="position: relative; overflow: hidden; width: 100%; height: auto; min-height: 0px;">
+      <div
+        style="position: relative; overflow: auto; margin-bottom: -15px; min-height: 15px;">
+        <div class="scrolling_container">
 
-    <!--
-      This HTML file opens when you click on icon from the toolbar.
+          <div class="settings_item_container">
+            <div class="settings_item">
+              <div class="bbflex">
+                <div class="bbflex">
+                  <svg width="16" height="16" fill="#ffffff">
+                    <path
+                      d="M8 0A8 8 0 11.582 11.001h2.221a6 6 0 100-6L.582 4.999A8.003 8.003 0 018 0zM7 5l4 3-4 3-.001-2H0V7h6.999L7 5z">
+                    </path>
+                  </svg>
+                  <div class="settings_item_label bbflex">Auto-Open</div>
+                </div>
+                <div class="bbflex">
+                  <div class="settings_toggle on"
+                    data-settings="auto_open">
+                    <div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="settings_description_container bbflex">
+              <div class="settings_description">Automatically opens captcha challenges.</div>
+            </div>
+          </div>
 
-      To begin the development, run `npm run watch`.
-      To create a production bundle, use `npm run build`.
-    -->
-  </body>
-</html>
+          <div class="settings_item_container">
+            <div class="settings_item">
+              <div class="bbflex">
+                <div class="bbflex">
+                  <svg width="16" height="16" fill="#ffffff">
+                    <path
+                      d="M13.336 9.007l.044.085 2.58 6.193a.516.516 0 01-.91.48l-.043-.083-.728-1.747h-2.753l-.727 1.747a.516.516 0 01-.586.306l-.089-.028a.516.516 0 01-.306-.586l.028-.089 2.58-6.193a.517.517 0 01.91-.085zM4.128 1.728V4.13a5.161 5.161 0 004.13 9.187v2.095A7.226 7.226 0 014.128 1.73zm8.775 8.904l-.947 2.271h1.893l-.946-2.27zM8.258 0v8.258H6.193V0h2.065zm2.065 1.728a7.233 7.233 0 014.055 5.498h-2.094a5.162 5.162 0 00-1.962-3.097V1.728z">
+                    </path>
+                  </svg>
+                  <div class="settings_item_label bbflex">Auto-Solve</div>
+                </div>
+                <div class="bbflex">
+                  <div class="settings_toggle on"
+                    data-settings="auto_solve">
+                    <div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="settings_description_container bbflex">
+              <div class="settings_description">Automatically solves captcha challenges.</div>
+            </div>
+          </div>
+
+          <div class="settings_item_container">
+            <div class="settings_item">
+              <div class="bbflex">
+                <div class="bbflex">
+                  <svg width="16" height="16" fill="#ffffff">
+                    <path
+                      d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z">
+                    </path>
+                  </svg>
+                  <div class="settings_item_label bbflex">Delay Timer</div>
+                </div>
+              </div>
+            </div>
+            <div class="settings_description_container bbflex">
+              <div class="settings_description">Milliseconds to delay solving.
+              </div>
+              <input type="number" autocomplete="off" spellcheck="false"
+                placeholder="Delay" value="3000"
+                class="settings_text text_input text_right small"
+                data-settings="solve_delay_time">
+            </div>
+          </div>
+          <div class="footer">
+            <div>Version 0.1.1</div>
+            <div>Credits to NopeCHA & QIN2DIM</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>

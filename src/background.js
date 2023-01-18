@@ -23,9 +23,18 @@ chrome.runtime.onMessage.addListener(
       const response = await fetch(model_url);
       const respBlob = await response.blob();
       const base64 = await convertBlobToBase64(respBlob);
+
       sendResponse({ status: response.status, model: base64 });
     }
     fetchModel()
     return true;
   }
 );
+
+(function () {
+    // Setup settings
+    chrome.runtime.onInstalled.addListener(async () => {
+      await chrome.storage.local.set({ auto_open: true, auto_solve: true, solve_delay_time: 3000 });
+    });
+  }
+)()
