@@ -34,4 +34,5 @@ if __name__ == "__main__":
     parser.add_argument("--infile", type=str, required=True)
     parser.add_argument("--outdir", type=str, required=True)
     args = parser.parse_args()
+    os.makedirs(args.outdir, exist_ok=True)
     convert(args.infile, args.outdir)
