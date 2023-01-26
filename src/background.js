@@ -7,7 +7,7 @@
 
 // Setup settings
 chrome.runtime.onInstalled.addListener(async () => {
-  await chrome.storage.local.set({ auto_open: true, auto_solve: true, solve_delay_time: 3000 });
+  await chrome.storage.local.set({ auto_open: true, auto_solve: true, click_delay_time: 300, solve_delay_time: 3000 });
 });
 
 const convertBlobToBase64 = async blob => {

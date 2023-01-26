@@ -301,7 +301,7 @@ function imageDataToTensor(image, dims) {
                     if (argmaxValue === 0) {
                         if (!is_cell_selected(cells[i])) {
                             cells[i].click();
-                            await Time.sleep(100);
+                            await Time.sleep(settings.click_delay_time);
                         }
                     }
                 }

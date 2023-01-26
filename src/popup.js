@@ -13,7 +13,7 @@ import './popup.css';
 
   function setupSetting() {
     // Restore settings
-    chrome.storage.local.get(["auto_open", "auto_solve", "solve_delay_time"],
+    chrome.storage.local.get(["auto_open", "auto_solve", "click_delay_time", "solve_delay_time"],
       async (e) => {
         const toggleElements = document.getElementsByClassName("settings_toggle");
         const textElements = document.getElementsByClassName("settings_text");
