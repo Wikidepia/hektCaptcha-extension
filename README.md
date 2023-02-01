@@ -4,8 +4,8 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Features
 
-- Feature 1
-- Feature 2
+- Automatically solve hCaptcha free of charge
+- No need to register or login
 
 ## Install
 
