@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "hektCaptcha Extension",
+  "name": "hektCaptcha: hCaptcha Solver",
   "version": "0.1.3",
   "description": "Automatically solve hCaptcha using AI. Locally, with Chrome extension.",
   "icons": {
@@ -13,7 +13,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "hektCaptcha Extension",
+    "default_title": "hektCaptcha",
     "default_popup": "popup.html"
   },
   "permissions": ["storage"],
