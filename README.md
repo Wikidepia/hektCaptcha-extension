@@ -1,5 +1,6 @@
 # <img src="public/icons/icon_48.png" width="45" align="left"> hektCaptcha Extension
 
+
 Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Features
@@ -9,10 +10,13 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Install
 
-[**Chrome** extension](https://github.com/Wikidepia/hektCaptcha-extension/releases)
+**Chrome Web Store:**
 
-How to use:
+![Download via Chrome Web Store](https://img.shields.io/chrome-web-store/v/bpfdbfnkjelhloljelooneehdalcmljb?style=flat-square)
 
+**Manual Installation:**
+
+0. Go to [Releases](https://github.com/Wikidepia/hektCaptcha-extension/releases)
 1. Download the latest `.crx` file
 2. Unzip it to a folder 
 3. Open `chrome://extensions/` in Chrome
