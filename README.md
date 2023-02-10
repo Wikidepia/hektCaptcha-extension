@@ -12,7 +12,9 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 **Chrome Web Store:**
 
-![Download via Chrome Web Store](https://img.shields.io/chrome-web-store/v/bpfdbfnkjelhloljelooneehdalcmljb?style=flat-square)
+<a href="https://chrome.google.com/webstore/detail/hektcaptcha-hcaptcha-solv/bpfdbfnkjelhloljelooneehdalcmljb">
+<img src="https://img.shields.io/chrome-web-store/v/bpfdbfnkjelhloljelooneehdalcmljb?style=flat-square" alt="Badge"></img>
+</a>
 
 **Manual Installation:**
 
