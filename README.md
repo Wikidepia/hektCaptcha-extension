@@ -1,6 +1,5 @@
 # <img src="public/icons/icon_48.png" width="45" align="left"> hektCaptcha Extension
 
-
 Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 ## Features
@@ -12,11 +11,7 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 **Chrome Web Store:**
 
-Download from [Chrome Web Store](https://chrome.google.com/webstore/detail/hektcaptcha-hcaptcha-solv/bpfdbfnkjelhloljelooneehdalcmljb) or click the badge below.
-
-<a href="https://chrome.google.com/webstore/detail/hektcaptcha-hcaptcha-solv/bpfdbfnkjelhloljelooneehdalcmljb">
-<img src="https://img.shields.io/chrome-web-store/v/bpfdbfnkjelhloljelooneehdalcmljb?style=flat-square" alt="Badge"></img>
-</a>
+Download from [Chrome Web Store](https://chrome.google.com/webstore/detail/hektcaptcha-hcaptcha-solv/bpfdbfnkjelhloljelooneehdalcmljb).
 
 **Manual Installation:**
 
