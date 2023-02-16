@@ -12,7 +12,7 @@ def convert(infile, outdir):
     converted_model = version_converter.convert_version(original_model, 17)
 
     infile_name = basename(infile)
-    converted_file = os.path.join(outdir, infile_name.replace(".onnx", "-upver.onnx"))
+    converted_file = os.path.join(outdir, infile_name)
     onnx.save(converted_model, converted_file)
 
     subprocess.run(
