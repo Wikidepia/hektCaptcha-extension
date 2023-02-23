@@ -264,6 +264,7 @@ function imageDataToTensor(image, dims) {
             .replace('Please click on all images containing', '')
             .trim()
             .replace(/^a /gm, '')
+            .replace(/^an /gm, '')
             .replaceAll(' ', '_');
         
         chrome.runtime.sendMessage(
