@@ -1,6 +1,6 @@
 {
   "name": "hektcaptcha-extension",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Automatically solve hCaptcha using AI.",
   "private": true,
   "scripts": {
