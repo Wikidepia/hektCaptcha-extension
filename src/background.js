@@ -21,7 +21,7 @@ const convertBlobToBase64 = async blob => {
 chrome.runtime.onMessage.addListener(
   function (request, sender, sendResponse) {
    (async () => {
-      const modelURL = `https://github.com/Wikidepia/hektCaptcha-extension/releases/download/modelhub/${request}.ort`;
+      const modelURL = `https://github.com/Wikidepia/hektCaptcha-model/releases/download/modelzoo/${request}.onnx`;
       try {
         const response = await fetch(modelURL);
         const blob = await response.blob();

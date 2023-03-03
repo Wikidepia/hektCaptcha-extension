@@ -21,6 +21,10 @@
     {
       "resources": ["dist/*"],
       "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["models/*"],
+      "matches": ["<all_urls>"]
     }
   ],
   "host_permissions": ["*://*.github.com/*", "*://*.githubusercontent.com/*"],

@@ -36,7 +36,7 @@ class Time {
 }
 
 function imageDataToTensor(image, dims) {
-    // 1. Get buffer data from image and create R, G, and B arrays.
+    // 1. Get buffer data from image and extract R, G, and B arrays.
     var imageBufferData = image.bitmap.data;
     const [redArray, greenArray, blueArray] = [
         [],
@@ -49,22 +49,23 @@ function imageDataToTensor(image, dims) {
         redArray.push(imageBufferData[i]);
         greenArray.push(imageBufferData[i + 1]);
         blueArray.push(imageBufferData[i + 2]);
-        // skip data[i + 3] to filter out the alpha channel
     }
 
     // 3. Concatenate RGB to transpose [224, 224, 3] -> [3, 224, 224] to a number array
-    const transposedData = redArray.concat(greenArray)
-        .concat(blueArray);
+    const transposedData = redArray.concat(greenArray, blueArray);
 
-    // 4. convert to float32
-    let i, l = transposedData.length; // length, we need this for the loop
-    // create the Float32Array size 3 * 224 * 224 for these dimensions output
-    const float32Data = new Float32Array(dims[1] * dims[2] * dims[3]);
-    for (i = 0; i < l; i++) {
-        float32Data[i] = transposedData[i] / 255.0; // convert to float
+    // 4. Convert to float32 and normalize to 1
+    const float32Data = new Float32Array(transposedData.map(x => x / 255.0));
+
+    // 5. Normalize the data mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+    const mean = [0.485, 0.456, 0.406];
+    const std = [0.229, 0.224, 0.225];
+    for (let i = 0; i < float32Data.length; i++) {
+        float32Data[i] = (float32Data[i] - mean[i % 3]) / std[i % 3];
     }
-    // 5. create the tensor object from onnxruntime-web.
-    const inputTensor = new ort.Tensor("float32", float32Data, dims);
+
+    // 6. Create a tensor from the float32 data
+    const inputTensor = new ort.Tensor('float32', float32Data, dims);
     return inputTensor;
 }
 
@@ -257,6 +258,9 @@ function imageDataToTensor(image, dims) {
             urls
         } = await on_task_ready();
 
+        const featSession = await ort.InferenceSession.create(
+            `chrome-extension://${extension_id}/models/mobilenetv3.onnx`
+        );
 
         // Get label for image
         const label = task
@@ -266,7 +270,6 @@ function imageDataToTensor(image, dims) {
             .replace(/^a /gm, '')
             .replace(/^an /gm, '')
             .replaceAll(' ', '_');
-        
         chrome.runtime.sendMessage(
             label,
             async function (response) {
@@ -276,7 +279,7 @@ function imageDataToTensor(image, dims) {
                 }
                 const model = await fetch(response.model)
                 const arrayBuffer = await model.arrayBuffer()
-                const session = await ort.InferenceSession.create(
+                const classifierSession = await ort.InferenceSession.create(
                     arrayBuffer
                 );
 
@@ -285,21 +288,25 @@ function imageDataToTensor(image, dims) {
                     // Read image from URL
                     const image = await Jimp.default.read(urls[i]);
 
-                    // Resize image to 64x64
-                    image.resize(64, 64);
+                    // Resize image to 224x224
+                    image.resize(224, 224);
 
                     // Convert image data to tensor
-                    const input = imageDataToTensor(image, [1, 3, 64, 64]);
+                    const input = imageDataToTensor(image, [1, 3, 224, 224]);
 
-                    // Feed input tensor to model and run it
-                    const outputs = await session.run({'input.1': input});
-                    const output = outputs[session.outputNames[0]].data;
+                    // Feed input tensor to feature extractor model and run it
+                    const featOutputs = await featSession.run({'input': input});
+                    const feats = featOutputs[featSession.outputNames[0]];
+
+                    // Feed feats to classifier
+                    const classifierOutputs = await classifierSession.run({'input': feats});
+                    const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
                     // Find index of maximum value in output array
                     const argmaxValue = output.indexOf(Math.max(...output));
 
                     // If index is 0, click on cell (if it is not already selected)
-                    if (argmaxValue === 0) {
+                    if (argmaxValue === 1) {
                         if (!is_cell_selected(cells[i])) {
                             cells[i].click();
                             await Time.sleep(settings.click_delay_time);
