@@ -258,6 +258,11 @@ function imageDataToTensor(image, dims) {
             urls
         } = await on_task_ready();
 
+        // shuffle cells and urls with the same order
+        const randomIndexes = Array.from({length: 9}, (_, i) => i).sort(() => Math.random() - 0.5);
+        const randomUrls = randomIndexes.map(i => urls[i]);
+        const randomCells = randomIndexes.map(i => cells[i]);
+        
         const featSession = await ort.InferenceSession.create(
             `chrome-extension://${extension_id}/models/mobilenetv3.ort`
         );
@@ -284,9 +289,9 @@ function imageDataToTensor(image, dims) {
                 );
 
                 // Solve task
-                for (let i = 0; i < urls.length; i++) {
+                for (let i = 0; i < randomUrls.length; i++) {
                     // Read image from URL
-                    const image = await Jimp.default.read(urls[i]);
+                    const image = await Jimp.default.read(randomUrls[i]);
 
                     // Resize image to 224x224
                     image.resize(224, 224);
@@ -307,8 +312,8 @@ function imageDataToTensor(image, dims) {
 
                     // If index is 0, click on cell (if it is not already selected)
                     if (argmaxValue === 1) {
-                        if (!is_cell_selected(cells[i])) {
-                            cells[i].click();
+                        if (!is_cell_selected(randomCells[i])) {
+                            randomCells[i].click();
                             await Time.sleep(settings.click_delay_time);
                         }
                     }
