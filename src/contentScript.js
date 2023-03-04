@@ -272,7 +272,6 @@ function imageDataToTensor(image, dims) {
       .replaceAll(' ', '_');
     chrome.runtime.sendMessage(label, async function (response) {
       if (response.status !== 200) {
-        console.error('error getting model, refreshing captcha', response);
         return retry();
       }
       const model = await fetch(response.model);
