@@ -259,7 +259,7 @@ function imageDataToTensor(image, dims) {
         } = await on_task_ready();
 
         const featSession = await ort.InferenceSession.create(
-            `chrome-extension://${extension_id}/models/mobilenetv3.onnx`
+            `chrome-extension://${extension_id}/models/mobilenetv3.ort`
         );
 
         // Get label for image
