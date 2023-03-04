@@ -1,15 +1,15 @@
 * {
   font-family: 'IBM Plex Sans';
   box-sizing: border-box;
-  outline: 0
+  outline: 0;
 }
 
 html {
-  width: 340px
+  width: 340px;
 }
 
 body {
-  width: 324px
+  width: 324px;
 }
 
 body,
@@ -17,26 +17,26 @@ html {
   background: #1a2432;
   color: #fff;
   line-height: 1.15;
-  text-size-adjust: 100%
+  text-size-adjust: 100%;
 }
 
 div {
-  display: block
+  display: block;
 }
 
 a {
-  text-decoration: none
+  text-decoration: none;
 }
 
 input {
   font-family: inherit;
   font-size: 100%;
   line-height: 1.15;
-  margin: 0
+  margin: 0;
 }
 
 input {
-  overflow: visible
+  overflow: visible;
 }
 
 input {
@@ -60,7 +60,7 @@ input {
   border-width: 2px;
   border-style: inset;
   border-color: -internal-light-dark(#767676, #858585);
-  border-image: initial
+  border-image: initial;
 }
 
 .text_input {
@@ -70,26 +70,26 @@ input {
   outline: 0;
   border: none;
   width: 100%;
-  font-size: 14px
+  font-size: 14px;
 }
 
 .text_input.small {
-  width: 30%
+  width: 30%;
 }
 
 .text_input.text_right {
-  text-align: right
+  text-align: right;
 }
 
 input::-webkit-inner-spin-button,
 input::-webkit-outer-spin-button {
   -webkit-appearance: none;
-  margin: 0
+  margin: 0;
 }
 
-input[type=number] {
+input[type='number'] {
   appearance: textfield;
-  -moz-appearance: textfield
+  -moz-appearance: textfield;
 }
 
 ::-webkit-scrollbar {
@@ -97,15 +97,15 @@ input[type=number] {
   right: 2px;
   bottom: 2px;
   top: 2px;
-  border-radius: 3px
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-track {
-  background: 0 0
+  background: 0 0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .2)
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .header {
@@ -113,7 +113,7 @@ input[type=number] {
   padding: 16px;
   display: flex;
   place-content: space-between;
-  font-weight: 400
+  font-weight: 400;
 }
 
 .header_label_container {
@@ -124,7 +124,7 @@ input[type=number] {
   -webkit-box-pack: center;
   justify-content: center;
   -webkit-box-align: center;
-  align-items: center
+  align-items: center;
 }
 
 .header_label {
@@ -132,14 +132,14 @@ input[type=number] {
   font-size: 24px;
   font-weight: 700;
   display: flex;
-  color: #fff
+  color: #fff;
 }
 
 .bbflex {
   box-sizing: border-box;
   display: flex;
   -webkit-box-align: center;
-  align-items: center
+  align-items: center;
 }
 
 .scrolling_container {
@@ -147,30 +147,30 @@ input[type=number] {
   margin-top: 8px;
   margin-left: 16px;
   margin-right: 16px;
-  padding-bottom: 16px
+  padding-bottom: 16px;
 }
 
 .settings_item_container {
   box-sizing: border-box;
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 .settings_item {
   width: 100%;
-  background-color: rgba(255, 255, 255, .08);
+  background-color: rgba(255, 255, 255, 0.08);
   min-height: 48px;
   padding: 14px 16px 0;
-  border-radius: 8px
+  border-radius: 8px;
 }
 
-.settings_item>div {
+.settings_item > div {
   -webkit-box-pack: justify;
   justify-content: space-between;
   -webkit-box-align: center;
-  align-items: center
+  align-items: center;
 }
 
 .settings_item_label {
@@ -180,7 +180,7 @@ input[type=number] {
   padding-left: 16px;
   height: 20px;
   -webkit-box-align: center;
-  align-items: center
+  align-items: center;
 }
 
 .settings_toggle {
@@ -189,46 +189,46 @@ input[type=number] {
   min-width: 36px;
   border-radius: 10px;
   padding: 2px;
-  transition: background-color .3s ease 0s;
+  transition: background-color 0.3s ease 0s;
   opacity: 1;
-  cursor: pointer
+  cursor: pointer;
 }
 
-.settings_toggle>div {
+.settings_toggle > div {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   transform: translate(16px);
-  transition: transform .3s ease 0s, background-color .3s ease 0s
+  transition: transform 0.3s ease 0s, background-color 0.3s ease 0s;
 }
 
 .settings_toggle.on {
-  background-color: #006aff
+  background-color: #006aff;
 }
 
 .settings_toggle.off {
-  background-color: #fff
-}
-
-.settings_toggle.on>div {
   background-color: #fff;
-  transform: translate(16px)
 }
 
-.settings_toggle.off>div {
+.settings_toggle.on > div {
+  background-color: #fff;
+  transform: translate(16px);
+}
+
+.settings_toggle.off > div {
   background-color: #020d1c;
-  transform: translate(0)
+  transform: translate(0);
 }
 
 .settings_description_container {
   padding: 10px 16px 8px;
   -webkit-box-pack: justify;
-  justify-content: space-between
+  justify-content: space-between;
 }
 
 .settings_description {
   font-size: 12px;
-  color: rgba(255, 255, 255, .5)
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .footer {
@@ -236,13 +236,13 @@ input[type=number] {
   flex-direction: row;
   padding: 8px;
   margin-top: 8px;
-  font-size: 10px
+  font-size: 10px;
 }
 
 .footer * {
-  color: rgba(255, 255, 255, .8)
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.footer>:nth-child(1) {
-  flex-grow: 1
+.footer > :nth-child(1) {
+  flex-grow: 1;
 }

@@ -13,34 +13,41 @@ import './popup.css';
 
   function setupSetting() {
     // Restore settings
-    chrome.storage.local.get(["auto_open", "auto_solve", "click_delay_time", "solve_delay_time"],
+    chrome.storage.local.get(
+      ['auto_open', 'auto_solve', 'click_delay_time', 'solve_delay_time'],
       async (e) => {
-        const toggleElements = document.getElementsByClassName("settings_toggle");
-        const textElements = document.getElementsByClassName("settings_text");
+        const toggleElements =
+          document.getElementsByClassName('settings_toggle');
+        const textElements = document.getElementsByClassName('settings_text');
         for (const g of toggleElements) {
-          g.classList.remove("on", "off");
-          g.classList.add(e[g.dataset.settings] ? "on" : "off");
+          g.classList.remove('on', 'off');
+          g.classList.add(e[g.dataset.settings] ? 'on' : 'off');
         }
         for (const g of textElements) {
           g.value = e[g.dataset.settings];
         }
-      });
+      }
+    );
 
     // Add change listener to settings
     const handleSettingChange = async (element) => {
-      var value = element.classList.contains("settings_toggle") ? element.classList.contains("off") : element.value;
+      var value = element.classList.contains('settings_toggle')
+        ? element.classList.contains('off')
+        : element.value;
       await chrome.storage.local.set({ [element.dataset.settings]: value });
-      if (element.classList.contains("settings_toggle")) {
-        element.classList.remove("on", "off");
-        element.classList.add(value ? "on" : "off");
+      if (element.classList.contains('settings_toggle')) {
+        element.classList.remove('on', 'off');
+        element.classList.add(value ? 'on' : 'off');
       }
-    }
+    };
 
-    for (const element of document.querySelectorAll(`.settings_toggle, .settings_text`)) {
-      if (element.classList.contains("settings_toggle")) {
-        element.addEventListener("click", () => handleSettingChange(element));
-      } else if (element.classList.contains("settings_text")) {
-        element.addEventListener("input", () => handleSettingChange(element));
+    for (const element of document.querySelectorAll(
+      `.settings_toggle, .settings_text`
+    )) {
+      if (element.classList.contains('settings_toggle')) {
+        element.addEventListener('click', () => handleSettingChange(element));
+      } else if (element.classList.contains('settings_text')) {
+        element.addEventListener('input', () => handleSettingChange(element));
       }
     }
   }
