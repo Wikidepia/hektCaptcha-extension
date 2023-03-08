@@ -283,8 +283,8 @@ function imageDataToTensor(image, dims) {
         // Read image from URL
         const image = await Jimp.default.read(randomUrls[i]);
 
-        // Resize image to 224x224
-        image.resize(224, 224);
+        // Resize image to 224x224 with bilinear interpolation
+        image.resize(224, 224, Jimp.RESIZE_BILINEAR);
 
         // Convert image data to tensor
         const input = imageDataToTensor(image, [1, 3, 224, 224]);
