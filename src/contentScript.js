@@ -266,12 +266,15 @@ function imageDataToTensor(image, dims) {
     const label = task
       .replace('Please click each image containing', '')
       .replace('Please click on all images containing', '')
+      .replace('Please click on all images of', '')
       .trim()
-      .replace(/^a /gm, '')
-      .replace(/^an /gm, '')
-      .replaceAll(' ', '_');
+      .replace(/^(a|an)\s+/i, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+
     chrome.runtime.sendMessage(label, async function (response) {
       if (response.status !== 200) {
+        console.log('error getting model', response, label);
         return retry();
       }
       const model = await fetch(response.model);
