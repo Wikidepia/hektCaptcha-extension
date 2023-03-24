@@ -65,6 +65,26 @@ function imageDataToTensor(image, dims) {
   return inputTensor;
 }
 
+function cosineSimilarity(a, b) {
+  const dotProduct = a.reduce((acc, val, i) => acc + val * b[i], 0);
+  const magnitudeA = Math.sqrt(a.reduce((acc, val) => acc + val * val, 0));
+  const magnitudeB = Math.sqrt(b.reduce((acc, val) => acc + val * val, 0));
+  return dotProduct / (magnitudeA * magnitudeB);
+}
+
+function simulateMouseEvent(element, eventName, coordX, coordY) {
+  element.dispatchEvent(
+    new MouseEvent(eventName, {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+      clientX: coordX,
+      clientY: coordY,
+      button: 0,
+    })
+  );
+}
+
 (async () => {
   function is_widget_frame() {
     if (
@@ -163,8 +183,10 @@ function imageDataToTensor(image, dims) {
           return;
         }
 
-        const $cells = document.querySelectorAll('.task-image');
-        if ($cells.length !== 9) {
+        const $cells = document.querySelectorAll(
+          '.task-image, .challenge-answer'
+        );
+        if ($cells.length !== 9 && $cells.length !== 4) {
           checking = false;
           return;
         }
@@ -251,16 +273,56 @@ function imageDataToTensor(image, dims) {
 
     const { task, cells, urls } = await on_task_ready();
 
-    // shuffle cells and urls with the same order
-    const randomIndexes = Array.from({ length: 9 }, (_, i) => i).sort(
-      () => Math.random() - 0.5
-    );
-    const randomUrls = randomIndexes.map((i) => urls[i]);
-    const randomCells = randomIndexes.map((i) => cells[i]);
-
     const featSession = await ort.InferenceSession.create(
       `chrome-extension://${extension_id}/models/mobilenetv3.ort`
     );
+
+    //Select the most accurate description of the image.
+    if (task.includes('accurate description')) {
+      const embeddings = await Promise.all(
+        urls.map(async (url) => {
+          // Read image from URL
+          const image = await Jimp.default.read(url);
+
+          // Resize image to 224x224 with bilinear interpolation
+          image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+
+          // Convert image data to tensor
+          const input = imageDataToTensor(image, [1, 3, 224, 224]);
+
+          // Feed input tensor to feature extractor model and run it
+          const featOutputs = await featSession.run({ input: input });
+          const feats = featOutputs[featSession.outputNames[0]];
+
+          return feats.data;
+        })
+      );
+
+      // Get first embeddings (task-image)
+      const taskEmbedding = embeddings[0];
+      embeddings.shift();
+      cells.shift();
+
+      // Get highest cosine similarity with taskEmbedding in one shot
+      // Thanks Copilot.
+      const highestSimIdx = embeddings
+        .map((embedding) => cosineSimilarity(taskEmbedding, embedding))
+        .reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
+
+      const box = cells[highestSimIdx].getBoundingClientRect();
+      const coordX = box.left + Math.random() * box.width;
+      const coordY = box.top + Math.random() * box.height;
+
+      await Time.sleep(settings.click_delay_time);
+      // Click on cell with highest similarity
+      simulateMouseEvent(cells[highestSimIdx], 'mousedown', coordX, coordY);
+      simulateMouseEvent(cells[highestSimIdx], 'mouseup', coordX, coordY);
+      simulateMouseEvent(cells[highestSimIdx], 'click', coordX, coordY);
+
+      // Submit
+      await Time.sleep(settings.click_delay_time);
+      return submit();
+    }
 
     // Get label for image
     const label = task
@@ -282,9 +344,9 @@ function imageDataToTensor(image, dims) {
       const classifierSession = await ort.InferenceSession.create(arrayBuffer);
 
       // Solve task
-      for (let i = 0; i < randomUrls.length; i++) {
+      for (let i = 0; i < urls.length; i++) {
         // Read image from URL
-        const image = await Jimp.default.read(randomUrls[i]);
+        const image = await Jimp.default.read(urls[i]);
 
         // Resize image to 224x224 with bilinear interpolation
         image.resize(224, 224, Jimp.RESIZE_BILINEAR);
@@ -305,8 +367,8 @@ function imageDataToTensor(image, dims) {
 
         // If index is 0, click on cell (if it is not already selected)
         if (argmaxValue === 1) {
-          if (!is_cell_selected(randomCells[i])) {
-            randomCells[i].click();
+          if (!is_cell_selected(cells[i])) {
+            cells[i].click();
             await Time.sleep(settings.click_delay_time);
           }
         }
