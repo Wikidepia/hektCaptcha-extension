@@ -72,17 +72,24 @@ function cosineSimilarity(a, b) {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-function simulateMouseEvent(element, eventName, coordX, coordY) {
-  element.dispatchEvent(
-    new MouseEvent(eventName, {
+function simulateMouseClick(element) {
+  const box = element.getBoundingClientRect();
+  const clientX = box.left + box.width / 2;
+  const clientY = box.top + box.height / 2;
+
+  // Send mouseover, mousedown, mouseup, click, mouseout
+  const eventNames = ['mouseover', 'mousedown', 'mouseup', 'click'];
+  eventNames.forEach((eventName) => {
+    const event = new MouseEvent(eventName, {
+      button: 0,
       view: window,
       bubbles: true,
       cancelable: true,
-      clientX: coordX,
-      clientY: coordY,
-      button: 0,
-    })
-  );
+      clientX: clientX,
+      clientY: clientY,
+    });
+    element.dispatchEvent(event);
+  });
 }
 
 (async () => {
@@ -101,7 +108,7 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
   }
 
   function open_image_frame() {
-    document.querySelector('#checkbox')?.click();
+    simulateMouseClick(document.querySelector('#checkbox'));
   }
 
   function is_solved() {
@@ -230,17 +237,17 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
 
   function submit() {
     try {
-      document.querySelector('.button-submit').click();
+      simulateMouseClick(document.querySelector('.button-submit'));
     } catch (e) {
       console.error('error submitting', e);
     }
   }
 
-  function retry() {
+  function refresh() {
     try {
-      document.querySelector('.refresh.button').click();
+      simulateMouseClick(document.querySelector('.refresh.button'));
     } catch (e) {
-      console.error('error retrying', e);
+      console.error('error refreshing', e);
     }
   }
 
@@ -265,9 +272,9 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
     if (
       document.querySelector('.display-language .text').textContent !== 'EN'
     ) {
-      document
-        .querySelector('.language-selector .option:nth-child(23)')
-        .click();
+      simulateMouseClick(
+        document.querySelector('.language-selector .option:nth-child(23)')
+      );
       await Time.sleep(500);
     }
 
@@ -309,18 +316,12 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
         .map((embedding) => cosineSimilarity(taskEmbedding, embedding))
         .reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
 
-      const box = cells[highestSimIdx].getBoundingClientRect();
-      const coordX = box.left + Math.random() * box.width;
-      const coordY = box.top + Math.random() * box.height;
-
-      await Time.sleep(settings.click_delay_time);
       // Click on cell with highest similarity
-      simulateMouseEvent(cells[highestSimIdx], 'mousedown', coordX, coordY);
-      simulateMouseEvent(cells[highestSimIdx], 'mouseup', coordX, coordY);
-      simulateMouseEvent(cells[highestSimIdx], 'click', coordX, coordY);
+      await Time.sleep(settings.click_delay_time);
+      simulateMouseClick(cells[highestSimIdx]);
 
       // Submit
-      await Time.sleep(settings.click_delay_time);
+      await Time.sleep(settings.click_delay_time * 2.5);
       return submit();
     }
 
@@ -337,7 +338,7 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
     chrome.runtime.sendMessage(label, async function (response) {
       if (response.status !== 200) {
         console.log('error getting model', response, label);
-        return retry();
+        return refresh();
       }
       const model = await fetch(response.model);
       const arrayBuffer = await model.arrayBuffer();
@@ -368,7 +369,7 @@ function simulateMouseEvent(element, eventName, coordX, coordY) {
         // If index is 0, click on cell (if it is not already selected)
         if (argmaxValue === 1) {
           if (!is_cell_selected(cells[i])) {
-            cells[i].click();
+            simulateMouseClick(cells[i]);
             await Time.sleep(settings.click_delay_time);
           }
         }
