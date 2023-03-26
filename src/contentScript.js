@@ -80,13 +80,17 @@ function simulateMouseClick(element) {
   // Send mouseover, mousedown, mouseup, click, mouseout
   const eventNames = ['mouseover', 'mousedown', 'mouseup', 'click'];
   eventNames.forEach((eventName) => {
+    const detail = eventName === 'mouseover' ? 0 : 1;
     const event = new MouseEvent(eventName, {
-      button: 0,
+      detail: detail,
       view: window,
       bubbles: true,
       cancelable: true,
       clientX: clientX,
       clientY: clientY,
+      sourceCapabilities: new InputDeviceCapabilities({
+        firesTouchEvents: false,
+      }),
     });
     element.dispatchEvent(event);
   });
