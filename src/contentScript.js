@@ -199,7 +199,7 @@ function simulateMouseClick(element) {
         );
         if ($cells.length !== 9 && $cells.length !== 4) {
           checking = false;
-          return;
+          return refresh();
         }
 
         const cells = [];
