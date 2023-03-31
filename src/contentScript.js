@@ -178,7 +178,7 @@ function simulateMouseClick(element) {
     return new_task.join('');
   }
 
-  let last_urls_hash = null;
+  let lastChallenge = null;
   function on_task_ready(i = 500) {
     return new Promise((resolve) => {
       let checking = false;
@@ -194,44 +194,62 @@ function simulateMouseClick(element) {
           return;
         }
 
-        const $cells = document.querySelectorAll(
-          '.task-image, .challenge-answer'
-        );
-        if ($cells.length !== 9 && $cells.length !== 4) {
-          checking = false;
-          return refresh();
+        // Determine hCaptcha type
+        let type = null;
+        if (document.querySelector('.challenge-view > .task-grid')) {
+          type = 'CLASSIFY';
+        } else if (document.querySelector('.challenge-view > .task-wrapper')) {
+          type = 'MULTI_CHOICE';
+        } else if (
+          document.querySelector('.challenge-view > .bounding-box-example')
+        ) {
+          type = 'BOUNDING_BOX';
         }
 
         const cells = [];
         const urls = [];
-        for (const $e of $cells) {
-          const $img = $e.querySelector('div.image');
-          if (!$img) {
+        // Get image URLs and cells
+        if (type === 'CLASSIFY' || type === 'MULTI_CHOICE') {
+          const $cells = document.querySelectorAll(
+            '.task-image, .challenge-answer'
+          );
+          if ($cells.length !== 9 && $cells.length !== 4) {
             checking = false;
             return;
           }
 
-          const url = get_image_url($img);
-          if (!url || url === '') {
-            checking = false;
-            return;
-          }
+          for (const $e of $cells) {
+            const $img = $e.querySelector('div.image');
+            if (!$img) {
+              checking = false;
+              return;
+            }
 
-          cells.push($e);
-          urls.push(url);
+            const url = get_image_url($img);
+            if (!url || url === '') {
+              checking = false;
+              return;
+            }
+
+            cells.push($e);
+            urls.push(url);
+          }
         }
 
-        const urls_hash = JSON.stringify(urls);
-        if (last_urls_hash === urls_hash) {
+        // Check if old .challenge-view same as new .challenge-view
+        const currentChallenge =
+          document.querySelector('.challenge-view').innerHTML;
+        if (lastChallenge === currentChallenge) {
           checking = false;
           return;
         }
-        last_urls_hash = urls_hash;
+        lastChallenge = currentChallenge;
 
         clearInterval(check_interval);
         checking = false;
         return resolve({
           task,
+          type,
           cells,
           urls,
         });
@@ -261,15 +279,10 @@ function simulateMouseClick(element) {
 
   async function on_widget_frame() {
     // Wait if already solved
-    if (is_solved()) {
-      if (!was_solved) {
-        was_solved = true;
-      }
-      return;
+    if (!is_solved()) {
+      await Time.sleep(500);
+      open_image_frame();
     }
-    was_solved = false;
-    await Time.sleep(500);
-    open_image_frame();
   }
 
   async function on_image_frame(settings) {
@@ -282,14 +295,72 @@ function simulateMouseClick(element) {
       await Time.sleep(500);
     }
 
-    const { task, cells, urls } = await on_task_ready();
+    const { task, type, cells, urls } = await on_task_ready();
 
     const featSession = await ort.InferenceSession.create(
       `chrome-extension://${extension_id}/models/mobilenetv3.ort`
     );
 
-    //Select the most accurate description of the image.
-    if (task.includes('accurate description')) {
+    // Usual 3x3 grid, classify
+    if (type == 'CLASSIFY') {
+      // Get label for image
+      const label = task
+        .replace('Please click each image containing', '')
+        .replace('Please click on all images containing', '')
+        .replace('Please click on all images of', '')
+        .trim()
+        .replace(/^(a|an)\s+/i, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+
+      const fetchModel = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: 'CLASSIFIER', label }, resolve);
+      });
+
+      if (fetchModel.status !== 200) {
+        console.log('error getting model', fetchModel, label);
+        return refresh();
+      }
+      const model = await fetch(fetchModel.base64);
+      const modelBuffer = await model.arrayBuffer();
+      const classifierSession = await ort.InferenceSession.create(modelBuffer);
+
+      // Solve task
+      for (let i = 0; i < urls.length; i++) {
+        // Read image from URL
+        const image = await Jimp.default.read(urls[i]);
+
+        // Resize image to 224x224 with bilinear interpolation
+        image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+
+        // Convert image data to tensor
+        const input = imageDataToTensor(image, [1, 3, 224, 224]);
+
+        // Feed input tensor to feature extractor model and run it
+        const featOutputs = await featSession.run({ input: input });
+        const feats = featOutputs[featSession.outputNames[0]];
+
+        // Feed feats to classifier
+        const classifierOutputs = await classifierSession.run({ input: feats });
+        const output = classifierOutputs[classifierSession.outputNames[0]].data;
+
+        // Find index of maximum value in output array
+        const argmaxValue = output.indexOf(Math.max(...output));
+
+        // If index is 0, click on cell (if it is not already selected)
+        if (argmaxValue === 1) {
+          if (!is_cell_selected(cells[i])) {
+            simulateMouseClick(cells[i]);
+            await Time.sleep(settings.click_delay_time);
+          }
+        }
+      }
+
+      await Time.sleep(settings.solve_delay_time);
+      return submit();
+    }
+    // 1x3 grid, multi choice (similar image)
+    else if (type == 'MULTI_CHOICE') {
       const embeddings = await Promise.all(
         urls.map(async (url) => {
           // Read image from URL
@@ -327,66 +398,11 @@ function simulateMouseClick(element) {
       // Submit
       await Time.sleep(settings.click_delay_time * 2.5);
       return submit();
-    }
-
-    // Get label for image
-    const label = task
-      .replace('Please click each image containing', '')
-      .replace('Please click on all images containing', '')
-      .replace('Please click on all images of', '')
-      .trim()
-      .replace(/^(a|an)\s+/i, '')
-      .replace(/\s+/g, '_')
-      .toLowerCase();
-
-    const fetchModel = await new Promise((resolve) => {
-      chrome.runtime.sendMessage({ type: 'CLASSIFIER', label }, resolve);
-    });
-
-    if (fetchModel.status !== 200) {
-      console.log('error getting model', fetchModel, label);
+    } else {
       return refresh();
     }
-    const model = await fetch(fetchModel.base64);
-    const modelBuffer = await model.arrayBuffer();
-    const classifierSession = await ort.InferenceSession.create(modelBuffer);
-
-    // Solve task
-    for (let i = 0; i < urls.length; i++) {
-      // Read image from URL
-      const image = await Jimp.default.read(urls[i]);
-
-      // Resize image to 224x224 with bilinear interpolation
-      image.resize(224, 224, Jimp.RESIZE_BILINEAR);
-
-      // Convert image data to tensor
-      const input = imageDataToTensor(image, [1, 3, 224, 224]);
-
-      // Feed input tensor to feature extractor model and run it
-      const featOutputs = await featSession.run({ input: input });
-      const feats = featOutputs[featSession.outputNames[0]];
-
-      // Feed feats to classifier
-      const classifierOutputs = await classifierSession.run({ input: feats });
-      const output = classifierOutputs[classifierSession.outputNames[0]].data;
-
-      // Find index of maximum value in output array
-      const argmaxValue = output.indexOf(Math.max(...output));
-
-      // If index is 0, click on cell (if it is not already selected)
-      if (argmaxValue === 1) {
-        if (!is_cell_selected(cells[i])) {
-          simulateMouseClick(cells[i]);
-          await Time.sleep(settings.click_delay_time);
-        }
-      }
-    }
-
-    await Time.sleep(settings.solve_delay_time);
-    submit();
   }
 
-  let was_solved = false;
   while (true) {
     await Time.sleep(1000);
     if (!chrome.runtime?.id) {
