@@ -23,16 +23,22 @@ const convertBlobToBase64 = async (blob) => {
   });
 };
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (
+  { type, label },
+  sender,
+  sendResponse
+) {
   (async () => {
-    const modelURL = `https://github.com/Wikidepia/hektCaptcha-model/releases/download/modelzoo/${request}.ort`;
-    try {
-      const response = await fetch(modelURL);
-      const blob = await response.blob();
-      const base64 = await convertBlobToBase64(blob);
-      sendResponse({ status: response.status, model: base64 });
-    } catch (error) {
-      sendResponse({ status: 'error', message: error.message });
+    if (type == 'CLASSIFIER') {
+      const modelURL = `https://github.com/Wikidepia/hektCaptcha-model/releases/download/modelzoo/${label}.ort`;
+      try {
+        const response = await fetch(modelURL);
+        const blob = await response.blob();
+        const base64 = await convertBlobToBase64(blob);
+        sendResponse({ status: response.status, base64: base64 });
+      } catch (error) {
+        sendResponse({ status: 'error', message: error.message });
+      }
     }
   })();
   return true;

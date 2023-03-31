@@ -339,49 +339,51 @@ function simulateMouseClick(element) {
       .replace(/\s+/g, '_')
       .toLowerCase();
 
-    chrome.runtime.sendMessage(label, async function (response) {
-      if (response.status !== 200) {
-        console.log('error getting model', response, label);
-        return refresh();
-      }
-      const model = await fetch(response.model);
-      const arrayBuffer = await model.arrayBuffer();
-      const classifierSession = await ort.InferenceSession.create(arrayBuffer);
+    const fetchModel = await new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'CLASSIFIER', label }, resolve);
+    });
 
-      // Solve task
-      for (let i = 0; i < urls.length; i++) {
-        // Read image from URL
-        const image = await Jimp.default.read(urls[i]);
+    if (fetchModel.status !== 200) {
+      console.log('error getting model', fetchModel, label);
+      return refresh();
+    }
+    const model = await fetch(fetchModel.base64);
+    const modelBuffer = await model.arrayBuffer();
+    const classifierSession = await ort.InferenceSession.create(modelBuffer);
 
-        // Resize image to 224x224 with bilinear interpolation
-        image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+    // Solve task
+    for (let i = 0; i < urls.length; i++) {
+      // Read image from URL
+      const image = await Jimp.default.read(urls[i]);
 
-        // Convert image data to tensor
-        const input = imageDataToTensor(image, [1, 3, 224, 224]);
+      // Resize image to 224x224 with bilinear interpolation
+      image.resize(224, 224, Jimp.RESIZE_BILINEAR);
 
-        // Feed input tensor to feature extractor model and run it
-        const featOutputs = await featSession.run({ input: input });
-        const feats = featOutputs[featSession.outputNames[0]];
+      // Convert image data to tensor
+      const input = imageDataToTensor(image, [1, 3, 224, 224]);
 
-        // Feed feats to classifier
-        const classifierOutputs = await classifierSession.run({ input: feats });
-        const output = classifierOutputs[classifierSession.outputNames[0]].data;
+      // Feed input tensor to feature extractor model and run it
+      const featOutputs = await featSession.run({ input: input });
+      const feats = featOutputs[featSession.outputNames[0]];
 
-        // Find index of maximum value in output array
-        const argmaxValue = output.indexOf(Math.max(...output));
+      // Feed feats to classifier
+      const classifierOutputs = await classifierSession.run({ input: feats });
+      const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
-        // If index is 0, click on cell (if it is not already selected)
-        if (argmaxValue === 1) {
-          if (!is_cell_selected(cells[i])) {
-            simulateMouseClick(cells[i]);
-            await Time.sleep(settings.click_delay_time);
-          }
+      // Find index of maximum value in output array
+      const argmaxValue = output.indexOf(Math.max(...output));
+
+      // If index is 0, click on cell (if it is not already selected)
+      if (argmaxValue === 1) {
+        if (!is_cell_selected(cells[i])) {
+          simulateMouseClick(cells[i]);
+          await Time.sleep(settings.click_delay_time);
         }
       }
+    }
 
-      await Time.sleep(settings.solve_delay_time);
-      submit();
-    });
+    await Time.sleep(settings.solve_delay_time);
+    submit();
   }
 
   let was_solved = false;
