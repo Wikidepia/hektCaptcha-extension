@@ -347,12 +347,10 @@ function simulateMouseClick(element) {
         // Find index of maximum value in output array
         const argmaxValue = output.indexOf(Math.max(...output));
 
-        // If index is 0, click on cell (if it is not already selected)
-        if (argmaxValue === 1) {
-          if (!is_cell_selected(cells[i])) {
-            simulateMouseClick(cells[i]);
-            await Time.sleep(settings.click_delay_time);
-          }
+        // If argmaxValue is 1, click on cell (if it is not already selected)
+        if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
+          simulateMouseClick(cells[i]);
+          await Time.sleep(settings.click_delay_time);
         }
       }
 
