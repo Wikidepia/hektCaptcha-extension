@@ -178,7 +178,7 @@ function simulateMouseClick(element) {
     return new_task.join('');
   }
 
-  let lastChallenge = null;
+  let lastUrls = null;
   function on_task_ready(i = 500) {
     return new Promise((resolve) => {
       let checking = false;
@@ -232,14 +232,12 @@ function simulateMouseClick(element) {
           }
         }
 
-        // Check if old .challenge-view same as new .challenge-view
-        const currentChallenge =
-          document.querySelector('.challenge-view').innerHTML;
-        if (lastChallenge === currentChallenge) {
+        const currentUrls = JSON.stringify(urls);
+        if (lastUrls === currentUrls && type !== 'BOUNDING_BOX') {
           checking = false;
           return;
         }
-        lastChallenge = currentChallenge;
+        lastUrls = currentUrls;
 
         clearInterval(check_interval);
         checking = false;
