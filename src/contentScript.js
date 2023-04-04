@@ -214,6 +214,11 @@ function simulateMouseClick(element) {
             '.task-image, .challenge-answer'
           );
 
+          if ($cells.length === 0) {
+            checking = false;
+            return;
+          }
+
           for (const $e of $cells) {
             const $img = $e.querySelector('div.image');
             if (!$img) {
@@ -269,6 +274,15 @@ function simulateMouseClick(element) {
 
   function is_cell_selected($cell) {
     return $cell.getAttribute('aria-pressed') === 'true';
+  }
+
+  async function on_widget_frame() {
+    // Wait if already solved
+    if (is_solved()) {
+      return;
+    }
+    await Time.sleep(500);
+    open_image_frame();
   }
 
   async function on_image_frame(settings) {
@@ -395,7 +409,7 @@ function simulateMouseClick(element) {
 
     let settings = await chrome.storage.local.get(null);
     if (is_widget_frame() && settings.auto_open) {
-      open_image_frame();
+      await on_widget_frame();
     } else if (is_image_frame() && settings.auto_solve) {
       await on_image_frame(settings);
     }
