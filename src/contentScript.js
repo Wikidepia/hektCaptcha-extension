@@ -188,7 +188,7 @@ function simulateMouseClick(element) {
         }
         checking = true;
 
-        const currentTask = document.querySelector('.challenge-view')
+        const currentTask = document.querySelector('.challenge-view');
         if (currentTask === null || currentTask.outerHTML === lastTask) {
           checking = false;
           return;
@@ -327,6 +327,9 @@ function simulateMouseClick(element) {
 
       // Solve task
       for (let i = 0; i < urls.length; i++) {
+        if (!cells[i].isConnected) {
+          return;
+        }
         // Read image from URL
         const image = await Jimp.default.read(urls[i]);
 
@@ -354,8 +357,10 @@ function simulateMouseClick(element) {
         }
       }
 
-      await Time.sleep(settings.solve_delay_time);
-      return submit();
+      if (cells[0].isConnected) {
+        await Time.sleep(settings.solve_delay_time);
+        return submit();
+      }
     }
     // 1x3 grid, multi choice (similar image)
     else if (type == 'MULTI_CHOICE') {
@@ -389,13 +394,15 @@ function simulateMouseClick(element) {
         .map((embedding) => cosineSimilarity(taskEmbedding, embedding))
         .reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
 
-      // Click on cell with highest similarity
-      await Time.sleep(settings.click_delay_time);
-      simulateMouseClick(cells[highestSimIdx]);
+      if (cells[highestSimIdx].isConnected && !is_cell_selected(cells[highestSimIdx])) {
+        // Click on cell with highest similarity
+        await Time.sleep(settings.click_delay_time);
+        simulateMouseClick(cells[highestSimIdx]);
 
-      // Submit
-      await Time.sleep(settings.click_delay_time * 2.5);
-      return submit();
+        // Submit
+        await Time.sleep(settings.click_delay_time * 2.5);
+        return submit();
+      }
     } else {
       return refresh();
     }
