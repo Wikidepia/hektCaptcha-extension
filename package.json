@@ -26,7 +26,6 @@
     "https-browserify": "^1.0.0",
     "jimp": "^0.16.2",
     "onnxruntime-common": "^1.14.0",
-    "onnxruntime-node": "^1.14.0",
     "onnxruntime-web": "file:onnxruntime-web-minimal",
     "path-browserify": "^1.0.1",
     "querystring-es3": "^0.2.1",
