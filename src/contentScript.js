@@ -11,7 +11,7 @@
 // For more information on Content Scripts,
 // See https://developer.chrome.com/extensions/content_scripts
 
-const Jimp = require('jimp');
+import Jimp from 'jimp';
 const ort = require('onnxruntime-web');
 
 const extension_id = chrome.runtime.id;
@@ -331,7 +331,7 @@ function simulateMouseClick(element) {
           return;
         }
         // Read image from URL
-        const image = await Jimp.default.read(urls[i]);
+        const image = await Jimp.read(urls[i]);
 
         // Resize image to 224x224 with bilinear interpolation
         image.resize(224, 224, Jimp.RESIZE_BILINEAR);
@@ -367,7 +367,7 @@ function simulateMouseClick(element) {
       const embeddings = await Promise.all(
         urls.map(async (url) => {
           // Read image from URL
-          const image = await Jimp.default.read(url);
+          const image = await Jimp.read(url);
 
           // Resize image to 224x224 with bilinear interpolation
           image.resize(224, 224, Jimp.RESIZE_BILINEAR);
