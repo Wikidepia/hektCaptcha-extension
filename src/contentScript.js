@@ -178,7 +178,7 @@ function simulateMouseClick(element) {
     return new_task.join('');
   }
 
-  let lastTask = null;
+  let lastUrls = null;
   function on_task_ready(i = 500) {
     return new Promise((resolve) => {
       let checking = false;
@@ -187,13 +187,6 @@ function simulateMouseClick(element) {
           return;
         }
         checking = true;
-
-        const currentTask = document.querySelector('.challenge-view');
-        if (currentTask === null || currentTask.outerHTML === lastTask) {
-          checking = false;
-          return;
-        }
-        lastTask = currentTask.outerHTML;
 
         let task = await get_task();
         if (!task) {
@@ -243,6 +236,13 @@ function simulateMouseClick(element) {
             urls.push(url);
           }
         }
+
+        const currentUrls = JSON.stringify(urls);
+        if (lastUrls === currentUrls && type !== 'BOUNDING_BOX') {
+          checking = false;
+          return;
+        }
+        lastUrls = currentUrls;
 
         clearInterval(check_interval);
         checking = false;
@@ -394,7 +394,10 @@ function simulateMouseClick(element) {
         .map((embedding) => cosineSimilarity(taskEmbedding, embedding))
         .reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
 
-      if (cells[highestSimIdx].isConnected && !is_cell_selected(cells[highestSimIdx])) {
+      if (
+        cells[highestSimIdx].isConnected &&
+        !is_cell_selected(cells[highestSimIdx])
+      ) {
         // Click on cell with highest similarity
         await Time.sleep(settings.click_delay_time);
         simulateMouseClick(cells[highestSimIdx]);
