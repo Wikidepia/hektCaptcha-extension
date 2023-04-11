@@ -74,12 +74,31 @@ function cosineSimilarity(a, b) {
 
 function simulateMouseClick(element) {
   const box = element.getBoundingClientRect();
-  const clientX = box.left + box.width / 2;
-  const clientY = box.top + box.height / 2;
+  let clientX = 0;
+  let clientY = 0;
 
   // Send mouseover, mousedown, mouseup, click, mouseout
-  const eventNames = ['mouseover', 'mousedown', 'mouseup', 'click'];
+  const eventNames = [
+    'mouseover',
+    'mouseenter',
+    'mousedown',
+    'mouseup',
+    'click',
+    'mouseout',
+  ];
   eventNames.forEach((eventName) => {
+    if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
+      clientX = box.left + box.width / 2;
+      clientY = box.top + box.height / 2;
+    } else {
+      clientX = box.left + (eventName === 'mouseenter' ? 0 : box.width);
+      clientY = box.top + (eventName === 'mouseenter' ? 0 : box.height);
+    }
+
+    // Add random offset
+    clientX += Math.random() * 10 - 5;
+    clientY += Math.random() * 10 - 5;
+
     const detail = eventName === 'mouseover' ? 0 : 1;
     const event = new MouseEvent(eventName, {
       detail: detail,
