@@ -314,6 +314,8 @@ function simulateMouseClick(element) {
       await Time.sleep(500);
     }
 
+    const refreshButton = document.querySelector('.refresh.button');
+
     const { task, type, cells, urls } = await on_task_ready();
 
     const featSession = await ort.InferenceSession.create(
@@ -338,7 +340,8 @@ function simulateMouseClick(element) {
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
-        return refresh();
+        if (refreshButton.isConnected) refresh();
+        return;
       }
       const model = await fetch(fetchModel.base64);
       const modelBuffer = await model.arrayBuffer();
@@ -426,7 +429,7 @@ function simulateMouseClick(element) {
         return submit();
       }
     } else {
-      return refresh();
+      if (refreshButton.isConnected) refresh();
     }
   }
 
