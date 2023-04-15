@@ -283,9 +283,10 @@ function simulateMouseClick(element) {
     }
   }
 
-  function refresh() {
+  async function refresh() {
     try {
       simulateMouseClick(document.querySelector('.refresh.button'));
+      await Time.sleep(250);
     } catch (e) {
       console.error('error refreshing', e);
     }
@@ -340,7 +341,7 @@ function simulateMouseClick(element) {
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
-        if (refreshButton.isConnected) refresh();
+        if (refreshButton.isConnected) await refresh();
         return;
       }
       const model = await fetch(fetchModel.base64);
@@ -429,7 +430,7 @@ function simulateMouseClick(element) {
         return submit();
       }
     } else {
-      if (refreshButton.isConnected) refresh();
+      if (refreshButton.isConnected) await refresh();
     }
   }
 
