@@ -2,6 +2,7 @@
 
 const { merge } = require('webpack-merge');
 const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const common = require('./webpack.common.js');
 const PATHS = require('./paths');
@@ -13,6 +14,18 @@ const config = (env, argv) =>
       popup: PATHS.src + '/popup.js',
       contentScript: PATHS.src + '/contentScript.js',
       background: PATHS.src + '/background.js',
+    },
+    optimization: {
+      minimize: argv.mode === 'production',
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              unused: false,
+            },
+          },
+        }),
+      ],
     },
     resolve: {
       fallback: {
