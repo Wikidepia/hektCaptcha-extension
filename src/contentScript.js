@@ -35,7 +35,31 @@ class Time {
   }
 }
 
-function imageDataToTensor(image, dims) {
+async function letterboxImage(image, size) {
+  const iw = image.bitmap.width;
+  const ih = image.bitmap.height;
+  const [w, h] = size;
+  const scale = Math.min(w / iw, h / ih);
+  const nw = Math.floor(iw * scale);
+  const nh = Math.floor(ih * scale);
+
+  image = await image.resize(nw, nh, Jimp.RESIZE_BICUBIC);
+  const newImage = new Jimp(w, h, 0x727272ff);
+  newImage.composite(image, (w - nw) / 2, (h - nh) / 2);
+  return newImage;
+}
+
+function scaleBoxes(boxes, imageDims, scaledDims) {
+  const gain = Math.min(
+    scaledDims[0] / imageDims[0],
+    scaledDims[1] / imageDims[1]
+  );
+  const wPad = (scaledDims[0] - gain * imageDims[0]) / 2;
+  const hPad = (scaledDims[1] - gain * imageDims[1]) / 2;
+  return boxes.map((box, i) => (box - (i % 2 === 0 ? wPad : hPad)) / gain);
+}
+
+function imageDataToTensor(image, dims, normalize = true) {
   // 1. Get buffer data from image and extract R, G, and B arrays.
   var imageBufferData = image.bitmap.data;
   const [redArray, greenArray, blueArray] = [[], [], []];
@@ -54,10 +78,12 @@ function imageDataToTensor(image, dims) {
   const float32Data = new Float32Array(transposedData.map((x) => x / 255.0));
 
   // 5. Normalize the data mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-  const mean = [0.485, 0.456, 0.406];
-  const std = [0.229, 0.224, 0.225];
-  for (let i = 0; i < float32Data.length; i++) {
-    float32Data[i] = (float32Data[i] - mean[i % 3]) / std[i % 3];
+  if (normalize) {
+    const mean = [0.485, 0.456, 0.406];
+    const std = [0.229, 0.224, 0.225];
+    for (let i = 0; i < float32Data.length; i++) {
+      float32Data[i] = (float32Data[i] - mean[i % 3]) / std[i % 3];
+    }
   }
 
   // 6. Create a tensor from the float32 data
@@ -72,10 +98,12 @@ function cosineSimilarity(a, b) {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-function simulateMouseClick(element) {
-  const box = element.getBoundingClientRect();
-  let clientX = 0;
-  let clientY = 0;
+function simulateMouseClick(element, clientX = null, clientY = null) {
+  if (clientX === null || clientY === null) {
+    const box = element.getBoundingClientRect();
+    clientX = box.left + box.width / 2;
+    clientY = box.top + box.height / 2;
+  }
 
   // Send mouseover, mousedown, mouseup, click, mouseout
   const eventNames = [
@@ -87,18 +115,6 @@ function simulateMouseClick(element) {
     'mouseout',
   ];
   eventNames.forEach((eventName) => {
-    if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
-      clientX = box.left + box.width / 2;
-      clientY = box.top + box.height / 2;
-    } else {
-      clientX = box.left + (eventName === 'mouseenter' ? 0 : box.width);
-      clientY = box.top + (eventName === 'mouseenter' ? 0 : box.height);
-    }
-
-    // Add random offset
-    clientX += Math.random() * 10 - 5;
-    clientY += Math.random() * 10 - 5;
-
     const detail = eventName === 'mouseover' ? 0 : 1;
     const event = new MouseEvent(eventName, {
       detail: detail,
@@ -254,6 +270,15 @@ function simulateMouseClick(element) {
             cells.push($e);
             urls.push(url);
           }
+        } else if (type === 'BOUNDING_BOX') {
+          const $canvas = document.querySelector('.challenge-view > canvas');
+          if (!$canvas) {
+            checking = false;
+            return;
+          }
+
+          cells.push($canvas);
+          urls.push($canvas.toDataURL());
         }
 
         const currentUrls = JSON.stringify(urls);
@@ -427,6 +452,77 @@ function simulateMouseClick(element) {
 
         // Submit
         await Time.sleep(settings.click_delay_time * 2.5);
+        return submit();
+      }
+    } else if (type == 'BOUNDING_BOX') {
+      const session = await ort.InferenceSession.create(
+        `chrome-extension://${extension_id}/models/detector.ort`
+      );
+      const nmsSession = await ort.InferenceSession.create(
+        `chrome-extension://${extension_id}/models/nms.ort`
+      );
+
+      const cellWidth = cells[0].getBoundingClientRect().width;
+      const cellHeight = cells[0].getBoundingClientRect().height;
+
+      // Get url and remove data:image/png;base64,
+      const url = urls[0].split(',')[1];
+      console.log(url);
+      const image = await Jimp.read(Buffer.from(url, 'base64'));
+      image.rgba(false);
+
+      // [topK, ioUThreshold, scoreThreshold]
+      const config = new ort.Tensor(
+        'float32',
+        new Float32Array([1, 0.45, 0.25])
+      );
+      const inputImage = await letterboxImage(image, [640, 640]);
+      const inputTensor = imageDataToTensor(
+        inputImage,
+        [1, 3, 640, 640],
+        false
+      );
+
+      // YOLOv5 detector
+      const outputMap = await session.run({ images: inputTensor });
+      const output0 = outputMap[session.outputNames[0]];
+
+      // NMS (Non-Maximum Suppression)
+      const nmsOutput = await nmsSession.run({
+        detection: outputMap[session.outputNames[0]],
+        config: config,
+      });
+      const selectedIdx = nmsOutput[nmsSession.outputNames[0]];
+      if (selectedIdx.data.length === 0) {
+        return;
+      }
+
+      for (let i = 0; i < selectedIdx.data.length; i++) {
+        const idx = selectedIdx.data[i];
+        const data = output0.data.slice(
+          idx * output0.dims[2],
+          (idx + 1) * output0.dims[2]
+        );
+        const [x, y, w, h] = data.slice(0, 4);
+
+        const [x1, y1, w1, h1] = scaleBoxes(
+          [x, y, w, h],
+          [cellWidth, cellHeight],
+          [640, 640]
+        );
+        const [x2, y2, x3, y3] = [
+          x1 - w1 / 2,
+          y1 - h1 / 2,
+          x1 + w1 / 2,
+          y1 + h1 / 2,
+        ];
+
+        // Get middle coordinate of result
+        const middleX = (x2 + x3) / 2;
+        const middleY = (y2 + y3) / 2;
+
+        simulateMouseClick(cells[0], middleX, middleY);
+        await Time.sleep(settings.solve_delay_time);
         return submit();
       }
     } else {
