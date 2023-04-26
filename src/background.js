@@ -29,8 +29,8 @@ chrome.runtime.onMessage.addListener(function (
   sendResponse
 ) {
   (async () => {
-    if (type == 'CLASSIFIER') {
-      const modelURL = `https://github.com/Wikidepia/hektCaptcha-model/releases/download/modelzoo/${label}.ort`;
+    if (type === 'CLASSIFIER') {
+      const modelURL = `https://hekt.akmal.dev/${label}.ort`;
       try {
         const response = await fetch(modelURL);
         const blob = await response.blob();

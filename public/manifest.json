@@ -27,7 +27,7 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "host_permissions": ["*://*.github.com/*", "*://*.githubusercontent.com/*"],
+  "host_permissions": ["*://hekt.akmal.dev/*"],
   "content_scripts": [
     {
       "matches": ["*://*.hcaptcha.com/captcha/*"],
