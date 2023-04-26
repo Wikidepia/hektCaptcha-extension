@@ -302,6 +302,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
   function submit() {
     try {
+      console.log("submitting...")
       simulateMouseClick(document.querySelector('.button-submit'));
     } catch (e) {
       console.error('error submitting', e);
@@ -490,7 +491,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
-        new Float32Array([1, 0.45, 0.25])
+        new Float32Array([1, 0.45, 0.1])
       );
       const inputImage = await letterboxImage(image, [640, 640]);
       const inputTensor = imageDataToTensor(
