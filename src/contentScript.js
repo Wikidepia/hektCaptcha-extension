@@ -147,7 +147,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
   }
 
   function open_image_frame() {
-    simulateMouseClick(document.querySelector('#checkbox'));
+    simulateMouseClick(document.querySelector('#anchor'));
   }
 
   function is_solved() {
