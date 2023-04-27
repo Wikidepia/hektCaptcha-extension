@@ -278,7 +278,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           }
 
           cells.push($canvas);
-          urls.push($canvas.toDataURL());
+          urls.push($canvas.toDataURL('image/jpeg'));
         }
 
         const currentUrls = JSON.stringify(urls);
@@ -302,7 +302,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
   function submit() {
     try {
-      console.log("submitting...")
       simulateMouseClick(document.querySelector('.button-submit'));
     } catch (e) {
       console.error('error submitting', e);
