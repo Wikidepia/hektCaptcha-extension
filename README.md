@@ -24,7 +24,7 @@ Download from [Chrome Web Store](https://chrome.google.com/webstore/detail/hektc
 
 ## Acknowledgment
 
-This project is based on the MIT-licensed [NopeCHA extension](https://github.com/nopecha-ai/nopecha-extension). Using model from [hcaptcha-challenger](https://github.com/QIN2DIM/hcaptcha-challenger/).
+This project is based on the MIT-licensed [NopeCHA extension](https://github.com/NopeCHALLC/nopecha-extension). Using model from [hektCaptcha-model](https://github.com/Wikidepia/hektCaptcha-model/).
 
 ## Contribution
 
