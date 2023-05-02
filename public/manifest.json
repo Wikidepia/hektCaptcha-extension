@@ -35,6 +35,13 @@
       "run_at": "document_end",
       "all_frames": true,
       "match_about_blank": false
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["recaptcha.js"],
+      "run_at": "document_end",
+      "all_frames": true,
+      "match_about_blank": false
     }
   ]
 }

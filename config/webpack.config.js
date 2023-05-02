@@ -13,6 +13,7 @@ const config = (env, argv) =>
     entry: {
       popup: PATHS.src + '/popup.js',
       hcaptcha: PATHS.src + '/hcaptcha.js',
+      recaptcha: PATHS.src + '/recaptcha.js',
       background: PATHS.src + '/background.js',
     },
     optimization: {
