@@ -62,15 +62,23 @@ async function simulateMouseClick(element) {
   let clientY = 0;
   const screenX = 50 + Math.floor(Math.random() * 100);
   const screenY = 50 + Math.floor(Math.random() * 200);
+
+  // Create array with random amount of string 'mousemove'
+  const randomMove = new Array(Math.floor(Math.random() * 10)).fill(
+    'mousemove'
+  );
+
   // Send mouseover, mousedown, mouseup, click, mouseout
   const eventNames = [
     'mouseover',
     'mouseenter',
+    ...randomMove,
     'mousedown',
     'mouseup',
     'click',
     'mouseout',
   ];
+
   for (let i = 0; i < eventNames.length; i++) {
     const eventName = eventNames[i];
     if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
@@ -356,6 +364,7 @@ class Time {
     // Select more images error
     if (got_solve_error()) {
       solved_urls = [];
+      return reload();
     }
 
     // Wait for images to load
@@ -621,6 +630,10 @@ class Time {
 
   while (true) {
     await Time.sleep(1000);
+    if (!chrome.runtime?.id) {
+      continue;
+    }
+
     let settings = await chrome.storage.local.get(null);
 
     // await check_image_frame_visibility();
