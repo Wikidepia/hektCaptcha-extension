@@ -60,8 +60,6 @@ async function simulateMouseClick(element) {
   const box = element.getBoundingClientRect();
   let clientX = 0;
   let clientY = 0;
-  const screenX = 50 + Math.floor(Math.random() * 100);
-  const screenY = 50 + Math.floor(Math.random() * 200);
 
   // Create array with random amount of string 'mousemove'
   const randomMove = new Array(Math.floor(Math.random() * 10)).fill(
@@ -81,6 +79,9 @@ async function simulateMouseClick(element) {
 
   for (let i = 0; i < eventNames.length; i++) {
     const eventName = eventNames[i];
+    const screenX = 50 + Math.floor(Math.random() * 100);
+    const screenY = 50 + Math.floor(Math.random() * 200);
+  
     if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
       clientX = box.left + box.width / 2;
       clientY = box.top + box.height / 2;
