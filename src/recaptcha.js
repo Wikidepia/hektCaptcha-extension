@@ -539,7 +539,9 @@ class Time {
               // console.log(
               //   `Cell (${i},${j}) is ${percentage * 100}% in bounding box`
               // );
-              data[j * 4 + i] = percentage > 0.1;
+              if (!data[j * 4 + i]) {
+                data[j * 4 + i] = percentage > 0.1;
+              }
             }
           }
         } else if (n === 3) {
