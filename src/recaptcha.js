@@ -81,7 +81,7 @@ async function simulateMouseClick(element) {
     const eventName = eventNames[i];
     const screenX = 50 + Math.floor(Math.random() * 100);
     const screenY = 50 + Math.floor(Math.random() * 200);
-  
+
     if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
       clientX = box.left + box.width / 2;
       clientY = box.top + box.height / 2;
@@ -472,7 +472,7 @@ class Time {
     // Initialize NMS
     const configNMS = new ort.Tensor(
       'float32',
-      new Float32Array([10, 0.35, 0.1])
+      new Float32Array([10, 0.35, 0.25])
     );
     const nmsSession = await ort.InferenceSession.create(
       `chrome-extension://${extension_id}/models/nms.ort`
@@ -518,22 +518,29 @@ class Time {
           // Calculate the row and column indices of
           // the top-left and bottom-right cells of the bounding box
           const cellSize = imageSize / n;
-          const [tl_row, tl_col, br_row, br_col] = [
-            Math.floor(y1 / cellSize),
-            Math.floor(x1 / cellSize),
-            Math.floor(y2 / cellSize),
-            Math.floor(x2 / cellSize),
-          ];
 
-          // Iterate over the cells in the 4x4 grid
-          // and check if each cell needs to be clicked
-          for (let i = 0; i < 16; i++) {
-            const row = Math.floor(i / 4);
-            const col = i % 4;
-            const withinRange =
-              tl_row <= row && row <= br_row && tl_col <= col && col <= br_col;
+          for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+              const x = i * cellSize;
+              const y = j * cellSize;
+              const cell_coords = [x, y, x + cellSize, y + cellSize];
 
-            data[i] = withinRange ? true : data[i] ?? false;
+              const intersection =
+                Math.max(
+                  0,
+                  Math.min(x2, cell_coords[2]) - Math.max(x1, cell_coords[0])
+                ) *
+                Math.max(
+                  0,
+                  Math.min(y2, cell_coords[3]) - Math.max(y1, cell_coords[1])
+                );
+              const area = cellSize * cellSize;
+              const percentage = intersection / area;
+              // console.log(
+              //   `Cell (${i},${j}) is ${percentage * 100}% in bounding box`
+              // );
+              data[j * 4 + i] = percentage > 0.1;
+            }
           }
         } else if (n === 3) {
           data[idxImage] = true;
@@ -543,6 +550,9 @@ class Time {
     }
 
     let clicks = 0;
+    if (n === 4 && data.every((x) => x === false)) {
+      return reload();
+    }
     for (let i = 0; i < data.length; i++) {
       if (data[i] === false) {
         continue;
@@ -570,7 +580,7 @@ class Time {
       n === 4
     ) {
       await Time.sleep(200);
-      submit();
+      return submit();
     }
   }
 
