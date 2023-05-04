@@ -105,6 +105,10 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     clientY = box.top + box.height / 2;
   }
 
+  if (clientX === NaN || clientY === NaN) {
+    return;
+  }
+
   // Send mouseover, mousedown, mouseup, click, mouseout
   const eventNames = [
     'mouseover',
@@ -547,7 +551,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
   }
 
   while (true) {
-    await Time.sleep(1000);
+    await Time.sleep(500);
     if (!chrome.runtime?.id) {
       continue;
     }
