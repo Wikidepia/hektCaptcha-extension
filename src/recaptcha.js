@@ -24,20 +24,6 @@ ort.env.wasm.wasmPaths = {
   'ort-wasm-simd-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-simd-threaded.wasm`,
 };
 
-async function letterboxImage(image, size) {
-  const iw = image.bitmap.width;
-  const ih = image.bitmap.height;
-  const [w, h] = size;
-  const scale = Math.min(w / iw, h / ih);
-  const nw = Math.floor(iw * scale);
-  const nh = Math.floor(ih * scale);
-
-  image = await image.resize(nw, nh, Jimp.RESIZE_BICUBIC);
-  const newImage = new Jimp(w, h, 0x727272ff);
-  newImage.composite(image, (w - nw) / 2, (h - nh) / 2);
-  return newImage;
-}
-
 function imageDataToTensor(image, dims, normalize = true) {
   // 1. Get buffer data from image and extract R, G, and B arrays.
   var imageBufferData = image.bitmap.data;
@@ -70,13 +56,12 @@ function imageDataToTensor(image, dims, normalize = true) {
   return inputTensor;
 }
 
-function simulateMouseClick(element, clientX = null, clientY = null) {
-  if (clientX === null || clientY === null) {
-    const box = element.getBoundingClientRect();
-    clientX = box.left + box.width / 2;
-    clientY = box.top + box.height / 2;
-  }
-
+async function simulateMouseClick(element) {
+  const box = element.getBoundingClientRect();
+  let clientX = 0;
+  let clientY = 0;
+  const screenX = 50 + Math.floor(Math.random() * 100);
+  const screenY = 50 + Math.floor(Math.random() * 200);
   // Send mouseover, mousedown, mouseup, click, mouseout
   const eventNames = [
     'mouseover',
@@ -86,7 +71,20 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     'click',
     'mouseout',
   ];
-  eventNames.forEach((eventName) => {
+  for (let i = 0; i < eventNames.length; i++) {
+    const eventName = eventNames[i];
+    if (eventName !== 'mouseenter' && eventName !== 'mouseout') {
+      clientX = box.left + box.width / 2;
+      clientY = box.top + box.height / 2;
+    } else {
+      clientX = box.left + (eventName === 'mouseenter' ? 0 : box.width);
+      clientY = box.top + (eventName === 'mouseenter' ? 0 : box.height);
+    }
+
+    // Add random offset
+    clientX += Math.random() * 10 - 5;
+    clientY += Math.random() * 20 - 5;
+
     const detail = eventName === 'mouseover' ? 0 : 1;
     const event = new MouseEvent(eventName, {
       detail: detail,
@@ -95,12 +93,15 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       cancelable: true,
       clientX: clientX,
       clientY: clientY,
+      screenX: screenX,
+      screenY: screenY,
       sourceCapabilities: new InputDeviceCapabilities({
         firesTouchEvents: false,
       }),
     });
     element.dispatchEvent(event);
-  });
+    await Time.random_sleep(0, 10);
+  }
 }
 
 class Time {
@@ -131,7 +132,7 @@ class Time {
   }
 
   function open_image_frame() {
-    document.querySelector('#recaptcha-anchor')?.click();
+    simulateMouseClick(document.querySelector('#recaptcha-anchor'));
   }
 
   function is_invalid_config() {
@@ -266,12 +267,13 @@ class Time {
   }
 
   function submit() {
-    document.querySelector('#recaptcha-verify-button')?.click();
+    simulateMouseClick(document.querySelector('#recaptcha-verify-button'));
   }
 
   function reload() {
-    document.querySelector('#recaptcha-reload-button')?.click();
+    simulateMouseClick(document.querySelector('#recaptcha-reload-button'));
   }
+
   function got_solve_incorrect() {
     const errors = [
       '.rc-imageselect-incorrect-response', // try again
@@ -331,20 +333,15 @@ class Time {
     open_image_frame();
   }
 
-  async function on_image_frame() {
+  async function on_image_frame(settings) {
     // Check if parent frame marked this frame as visible on screen
     // const is_visible = await BG.exec('Cache.get', {name: 'recaptcha_image_visible', tab_specific: true});
     // if (is_visible !== true) {
     //     return;
     // }
 
-    if (is_rate_limited()) {
-      console.log('rate limited');
-      return;
-    }
-
-    // Wait if verify button is disabled
-    if (is_solved()) {
+    // Wait if verify button or rate limited or invalid config
+    if (is_solved() || is_rate_limited() || is_invalid_config()) {
       return;
     }
 
@@ -359,15 +356,11 @@ class Time {
     // Select more images error
     if (got_solve_error()) {
       solved_urls = [];
-      console.log('ERROR DET');
-      // await BG.exec('reset_recaptcha');
-      return;
     }
 
     // Wait for images to load
     const is_ready = await on_images_ready();
     if (!is_ready) {
-      // await BG.exec('reset_recaptcha');
       return;
     }
 
@@ -379,20 +372,18 @@ class Time {
     const n = cells.length == 9 ? 3 : 4;
     let clickable_cells = []; // Variable number of clickable cells if secondary images appear
     if (background_url === null) {
-      for (let i = 0; i < urls.length; i++) {
-        const url = urls[i];
-        const cell = cells[i];
+      urls.forEach((url, i) => {
         if (url && !solved_urls.includes(url)) {
           image_urls.push(url);
-          clickable_cells.push(cell);
+          clickable_cells.push(cells[i]);
         }
-      }
+      });
     } else {
       image_urls.push(background_url);
       clickable_cells = cells;
     }
 
-    const label_cv = {
+    const normalizedLabel = {
       bicycles: 'bicycle',
       bridges: 'bridge',
       buses: 'bus',
@@ -401,15 +392,16 @@ class Time {
       crosswalks: 'crosswalk',
       'fire hydrants': 'fire hydrant',
       motorcycles: 'motorcycle',
-      mountains: 'mountain',
+      mountains: 'mountain or hill',
       'palm trees': 'palm tree',
+      taxis: 'taxi',
       stairs: 'stair',
       'traffic lights': 'traffic light',
       tractors: 'tractor',
       vehicles: 'car',
     };
 
-    const names = [
+    const modelLabel = [
       'bicycle',
       'bridge',
       'bus',
@@ -428,30 +420,29 @@ class Time {
       'truck',
     ];
 
-    let data = Array(16).fill(false);
+    const data = Array(16).fill(false);
     let label = task
       .replace('Select all squares with', '')
       .replace('Select all images with', '')
       .trim()
       .replace(/^(a|an)\s+/i, '')
       .toLowerCase();
-    label = label_cv[label] || label;
+    label = normalizedLabel[label] || label;
 
     const subImages = [];
     if (background_url === null) {
-      for (let i = 0; i < image_urls.length; i++) {
-        const url = image_urls[i];
-        const subImage = await Jimp.read(url);
-        subImage.rgba(false);
-        subImages.push(subImage);
+      for (const url of image_urls) {
+        subImages.push(await Jimp.read(url).then((img) => img.rgba(false)));
       }
     } else {
-      const image = await Jimp.read(background_url);
-      const cropSize = image.bitmap.width / n;
-      image.rgba(false);
+      const image = await Jimp.read(background_url).then((img) =>
+        img.rgba(false)
+      );
+
       if (n == 4) {
         subImages.push(image);
       } else {
+        const cropSize = image.bitmap.width / n;
         for (let i = 0; i < n; i++) {
           for (let j = 0; j < n; j++) {
             subImages.push(
@@ -462,24 +453,25 @@ class Time {
       }
     }
 
+    // Initialize model
+    const imageSize = 320;
+    const session = await ort.InferenceSession.create(
+      `chrome-extension://${extension_id}/models/recaptcha.ort`
+    );
+
+    // Initialize NMS
     const configNMS = new ort.Tensor(
       'float32',
-      new Float32Array([10, 0.35, 0.25])
+      new Float32Array([10, 0.35, 0.1])
     );
     const nmsSession = await ort.InferenceSession.create(
       `chrome-extension://${extension_id}/models/nms.ort`
     );
 
-    const modelPath = n === 3 ? 'recaptcha-3x3.ort' : 'recaptcha-4x4.ort';
-    const session = await ort.InferenceSession.create(
-      `chrome-extension://${extension_id}/models/${modelPath}`
-    );
-
     for (let idxImage = 0; idxImage < subImages.length; idxImage++) {
       const subImage = subImages[idxImage];
 
-      const imageSize = n === 3 ? 320 : 640;
-      const inputImage = await letterboxImage(subImage, [imageSize, imageSize]);
+      const inputImage = subImage.resize(imageSize, imageSize);
       const inputTensor = imageDataToTensor(
         inputImage,
         [1, 3, imageSize, imageSize],
@@ -506,11 +498,8 @@ class Time {
 
         const scores = selectedData.slice(5);
         const score = Math.max(...scores);
-        const labelName = names[scores.indexOf(score)];
-        console.log(labelName, label);
-        if (labelName !== label) {
-          continue;
-        }
+        const labelName = modelLabel[scores.indexOf(score)];
+        if (labelName !== label) continue;
 
         if (n === 4) {
           const [x, y, w, h] = selectedData.slice(0, 4);
@@ -536,9 +525,8 @@ class Time {
 
             data[i] = withinRange ? true : data[i] ?? false;
           }
-        } else {
+        } else if (n === 3) {
           data[idxImage] = true;
-          console.log(idxImage);
           break;
         }
       }
@@ -554,7 +542,7 @@ class Time {
       // Click if not already selected
       if (!is_cell_selected(clickable_cells[i])) {
         simulateMouseClick(clickable_cells[i]);
-        await Time.sleep(300);
+        await Time.random_sleep(100, 200);
       }
     }
 
@@ -565,7 +553,7 @@ class Time {
       }
     }
 
-    await Time.sleep(3000);
+    await Time.sleep(settings.solve_delay_time);
     if (
       (n === 3 && is_hard && clicks === 0 && (await on_images_ready())) ||
       (n === 3 && !is_hard) ||
@@ -633,14 +621,15 @@ class Time {
 
   while (true) {
     await Time.sleep(1000);
+    let settings = await chrome.storage.local.get(null);
 
     // await check_image_frame_visibility();
     // await check_widget_frame_visibility();
 
-    if (is_widget_frame()) {
+    if (is_widget_frame() && settings.auto_open) {
       await on_widget_frame();
-    } else if (is_image_frame()) {
-      await on_image_frame();
+    } else if (is_image_frame() && settings.auto_solve) {
+      await on_image_frame(settings);
     }
   }
 })();
