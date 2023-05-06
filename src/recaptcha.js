@@ -586,57 +586,6 @@ class Time {
     }
   }
 
-  async function check_image_frame_visibility() {
-    const $image_frames = [
-      ...document.querySelectorAll('iframe[src*="/recaptcha/api2/bframe"]'),
-      ...document.querySelectorAll(
-        'iframe[src*="/recaptcha/enterprise/bframe"]'
-      ),
-    ];
-    if ($image_frames.length > 0) {
-      for (const $frame of $image_frames) {
-        if (window.getComputedStyle($frame).visibility === 'visible') {
-          return await BG.exec('Cache.set', {
-            name: 'recaptcha_image_visible',
-            value: true,
-            tab_specific: true,
-          });
-        }
-      }
-      await BG.exec('Cache.set', {
-        name: 'recaptcha_image_visible',
-        value: false,
-        tab_specific: true,
-      });
-    }
-  }
-
-  async function check_widget_frame_visibility() {
-    const $widget_frames = [
-      ...document.querySelectorAll('iframe[src*="/recaptcha/api2/anchor"]'),
-      ...document.querySelectorAll(
-        'iframe[src*="/recaptcha/enterprise/anchor"]'
-      ),
-    ];
-    if ($widget_frames.length > 0) {
-      for (const $frame of $widget_frames) {
-        if (window.getComputedStyle($frame).visibility === 'visible') {
-          return await BG.exec('Cache.set', {
-            name: 'recaptcha_widget_visible',
-            value: true,
-            tab_specific: true,
-          });
-        }
-      }
-      await BG.exec('Cache.set', {
-        name: 'recaptcha_widget_visible',
-        value: false,
-        tab_specific: true,
-      });
-    }
-    return false;
-  }
-
   let was_solved = false;
   let was_incorrect = false;
   let solved_urls = [];
@@ -648,9 +597,6 @@ class Time {
     }
 
     let settings = await chrome.storage.local.get(null);
-
-    // await check_image_frame_visibility();
-    // await check_widget_frame_visibility();
 
     if (is_widget_frame() && settings.recaptcha_auto_open) {
       await on_widget_frame();
