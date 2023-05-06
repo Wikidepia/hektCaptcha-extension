@@ -405,12 +405,12 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         // If argmaxValue is 1, click on cell (if it is not already selected)
         if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
           simulateMouseClick(cells[i]);
-          await Time.sleep(settings.click_delay_time);
+          await Time.sleep(settings.hcaptcha_click_delay_time);
         }
       }
 
       if (cells[0].isConnected) {
-        await Time.sleep(settings.solve_delay_time);
+        await Time.sleep(settings.hcaptcha_solve_delay_time);
         return submit();
       }
     }
@@ -451,11 +451,11 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         !is_cell_selected(cells[highestSimIdx])
       ) {
         // Click on cell with highest similarity
-        await Time.sleep(settings.click_delay_time);
+        await Time.sleep(settings.hcaptcha_click_delay_time);
         simulateMouseClick(cells[highestSimIdx]);
 
         // Submit
-        await Time.sleep(settings.click_delay_time * 2.5);
+        await Time.sleep(settings.hcaptcha_click_delay_time * 2.5);
         return submit();
       }
     } else if (type == 'BOUNDING_BOX') {
@@ -542,7 +542,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         const middleY = (y2 + y3) / 2;
 
         simulateMouseClick(cells[0], middleX, middleY);
-        await Time.sleep(settings.solve_delay_time);
+        await Time.sleep(settings.hcaptcha_solve_delay_time);
         return submit();
       }
     } else {
@@ -557,9 +557,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
 
     let settings = await chrome.storage.local.get(null);
-    if (is_widget_frame() && settings.auto_open) {
+    if (is_widget_frame() && settings.hcaptcha_auto_open) {
       await on_widget_frame();
-    } else if (is_image_frame() && settings.auto_solve) {
+    } else if (is_image_frame() && settings.hcaptcha_auto_solve) {
       await on_image_frame(settings);
     }
   }

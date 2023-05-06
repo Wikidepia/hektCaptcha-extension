@@ -575,7 +575,7 @@ class Time {
       }
     }
 
-    await Time.sleep(settings.solve_delay_time);
+    await Time.sleep(settings.recaptcha_solve_delay_time);
     if (
       (n === 3 && is_hard && clicks === 0 && (await on_images_ready())) ||
       (n === 3 && !is_hard) ||
@@ -652,9 +652,9 @@ class Time {
     // await check_image_frame_visibility();
     // await check_widget_frame_visibility();
 
-    if (is_widget_frame() && settings.auto_open) {
+    if (is_widget_frame() && settings.recaptcha_auto_open) {
       await on_widget_frame();
-    } else if (is_image_frame() && settings.auto_solve) {
+    } else if (is_image_frame() && settings.recaptcha_auto_solve) {
       await on_image_frame(settings);
     }
   }

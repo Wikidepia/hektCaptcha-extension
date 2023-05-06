@@ -8,10 +8,15 @@
 // Setup settings
 chrome.runtime.onInstalled.addListener(async () => {
   await chrome.storage.local.set({
-    auto_open: true,
-    auto_solve: true,
-    click_delay_time: 300,
-    solve_delay_time: 3000,
+    hcaptcha_auto_open: true,
+    hcaptcha_auto_solve: true,
+    hcaptcha_click_delay_time: 300,
+    hcaptcha_solve_delay_time: 3000,
+
+    recaptcha_auto_open: true,
+    recaptcha_auto_solve: true,
+    recaptcha_click_delay_time: 300,
+    recaptcha_solve_delay_time: 1000,
   });
 });
 

@@ -246,3 +246,36 @@ input[type='number'] {
 .footer > :nth-child(1) {
   flex-grow: 1;
 }
+
+.tab-button {
+  flex: 1;
+  background-color: #2c3542;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tab-button.active {
+  background-color: #006aff;
+}
+
+.tab-logo {
+  height: 20px;
+  margin-right: 5px;
+}
+
+.tab-group {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.tab-content {
+  display: none;
+}
