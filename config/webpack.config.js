@@ -14,6 +14,7 @@ const config = (env, argv) =>
       popup: PATHS.src + '/popup.js',
       hcaptcha: PATHS.src + '/hcaptcha.js',
       recaptcha: PATHS.src + '/recaptcha.js',
+      recaptchaVisibility: PATHS.src + '/recaptcha-visibility.js',
       background: PATHS.src + '/background.js',
     },
     optimization: {

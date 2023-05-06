@@ -325,10 +325,22 @@ class Time {
 
   async function on_widget_frame() {
     // Check if parent frame marked this frame as visible on screen
-    // const is_visible = await BG.exec('Cache.get', {name: 'recaptcha_widget_visible', tab_specific: true});
-    // if (is_visible !== true) {
-    //     return;
-    // }
+    const is_visible = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'KV_GET',
+          label: {
+            key: 'recaptcha_widget_visible',
+            tab_specific: true,
+          },
+        },
+        resolve
+      );
+    });
+    console.log(is_visible);
+    if (is_visible.value !== true) {
+      return;
+    }
 
     // Wait if already solved
     if (is_solved()) {
@@ -344,10 +356,22 @@ class Time {
 
   async function on_image_frame(settings) {
     // Check if parent frame marked this frame as visible on screen
-    // const is_visible = await BG.exec('Cache.get', {name: 'recaptcha_image_visible', tab_specific: true});
-    // if (is_visible !== true) {
-    //     return;
-    // }
+    const is_visible = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'KV_GET',
+          label: {
+            key: 'recaptcha_image_visible',
+            tab_specific: true,
+          },
+        },
+        resolve
+      );
+    });
+    console.log(is_visible);
+    if (is_visible.value !== true) {
+      return;
+    }
 
     // Wait if verify button or rate limited or invalid config
     if (is_solved() || is_rate_limited() || is_invalid_config()) {
@@ -597,7 +621,6 @@ class Time {
     }
 
     let settings = await chrome.storage.local.get(null);
-
     if (is_widget_frame() && settings.recaptcha_auto_open) {
       await on_widget_frame();
     } else if (is_image_frame() && settings.recaptcha_auto_solve) {

@@ -28,6 +28,7 @@ const convertBlobToBase64 = async (blob) => {
   });
 };
 
+const kvStorage = {};
 chrome.runtime.onMessage.addListener(function (
   { type, label },
   sender,
@@ -44,6 +45,17 @@ chrome.runtime.onMessage.addListener(function (
       } catch (error) {
         sendResponse({ status: 'error', message: error.message });
       }
+    } else if (type === 'KV_SET') {
+      if (label.tab_specific) {
+        label.key = `${sender.tab.id}_${label.key}`;
+      }
+      kvStorage[label.key] = label.value;
+      sendResponse({ status: 'success' });
+    } else if (type === 'KV_GET') {
+      if (label.tab_specific) {
+        label.key = `${sender.tab.id}_${label.key}`;
+      }
+      sendResponse({ status: 'success', value: kvStorage[label.key] });
     }
   })();
   return true;
