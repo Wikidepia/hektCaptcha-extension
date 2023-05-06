@@ -276,6 +276,14 @@ input[type='number'] {
   margin-bottom: 12px;
 }
 
+.tab-group > :nth-child(1) {
+  border-radius: 10px 0 0 10px;
+}
+
+.tab-group > :nth-child(2) {
+  border-radius: 0 10px 10px 0;
+}
+
 .tab-content {
   display: none;
 }
