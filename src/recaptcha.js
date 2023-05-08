@@ -112,6 +112,13 @@ async function simulateMouseClick(element) {
     await Time.random_sleep(0, 10);
   }
 }
+const overflowBoxes = (box, maxSize) => {
+  box[0] = box[0] >= 0 ? box[0] : 0;
+  box[1] = box[1] >= 0 ? box[1] : 0;
+  box[2] = box[0] + box[2] <= maxSize ? box[2] : maxSize - box[0];
+  box[3] = box[1] + box[3] <= maxSize ? box[3] : maxSize - box[1];
+  return box;
+};
 
 class Time {
   static time() {
@@ -337,7 +344,7 @@ class Time {
         resolve
       );
     });
-    console.log(is_visible);
+
     if (is_visible.value !== true) {
       return;
     }
@@ -368,7 +375,7 @@ class Time {
         resolve
       );
     });
-    console.log(is_visible);
+
     if (is_visible.value !== true) {
       return;
     }
@@ -404,7 +411,7 @@ class Time {
 
     const image_urls = [];
     const n = cells.length == 9 ? 3 : 4;
-    let clickable_cells = []; // Variable number of clickable cells if secondary images appear
+    let clickable_cells = [];
     if (background_url === null) {
       urls.forEach((url, i) => {
         if (url && !solved_urls.includes(url)) {
@@ -451,7 +458,6 @@ class Time {
       'taxi',
       'tractor',
       'traffic light',
-      'truck',
     ];
 
     const data = Array(16).fill(false);
@@ -487,98 +493,168 @@ class Time {
       }
     }
 
-    // Initialize model
     const imageSize = 320;
-    const session = await ort.InferenceSession.create(
-      `chrome-extension://${extension_id}/models/recaptcha.ort`
-    );
-
     // Initialize NMS
-    const configNMS = new ort.Tensor(
+    const nmsConfig = new ort.Tensor(
       'float32',
       new Float32Array([10, 0.35, 0.25])
     );
-    const nmsSession = await ort.InferenceSession.create(
+    const nms = await ort.InferenceSession.create(
       `chrome-extension://${extension_id}/models/nms.ort`
     );
 
-    for (let idxImage = 0; idxImage < subImages.length; idxImage++) {
-      const subImage = subImages[idxImage];
+    if (n === 3) {
+      // Initialize recaptcha detection model
+      const session = await ort.InferenceSession.create(
+        `chrome-extension://${extension_id}/models/recaptcha-detection.ort`
+      );
 
-      const inputImage = subImage.resize(imageSize, imageSize);
+      for (let idxImage = 0; idxImage < subImages.length; idxImage++) {
+        const subImage = subImages[idxImage];
+
+        const inputImage = subImage.resize(imageSize, imageSize);
+        const inputTensor = imageDataToTensor(
+          inputImage,
+          [1, 3, imageSize, imageSize],
+          false
+        );
+
+        // YOLOv5 detector
+        const { output0 } = await session.run({ images: inputTensor });
+
+        // NMS (Non-Maximum Suppression)
+        const nmsOutput = await nms.run({
+          detection: output0,
+          config: nmsConfig,
+        });
+        const selectedIdx = nmsOutput[nms.outputNames[0]];
+
+        for (let i = 0; i < selectedIdx.data.length; i++) {
+          const idx = selectedIdx.data[i];
+          const selectedData = output0.data.slice(
+            idx * output0.dims[2],
+            (idx + 1) * output0.dims[2]
+          );
+
+          const scores = selectedData.slice(5);
+          const score = Math.max(...scores);
+          const labelName = modelLabel[scores.indexOf(score)];
+          if (labelName === label) {
+            data[idxImage] = true;
+            break;
+          }
+        }
+      }
+    } else if (n === 4) {
+      const gridWidth = imageSize / 4;
+      const gridPixel = gridWidth ** 2;
+
+      const [segmentation, mask] = await Promise.all([
+        ort.InferenceSession.create(
+          `chrome-extension://${extension_id}/models/best.quant.ort`
+        ),
+        ort.InferenceSession.create(
+          `chrome-extension://${extension_id}/models/mask-yolov5-seg.ort`
+        ),
+      ]);
+
+      const inputImage = subImages[0].resize(imageSize, imageSize);
       const inputTensor = imageDataToTensor(
         inputImage,
         [1, 3, imageSize, imageSize],
         false
       );
-
-      // YOLOv5 detector
-      const outputMap = await session.run({ images: inputTensor });
-      const output0 = outputMap[session.outputNames[0]];
-
-      // NMS (Non-Maximum Suppression)
-      const nmsOutput = await nmsSession.run({
-        detection: outputMap[session.outputNames[0]],
-        config: configNMS,
+      const { output0, output1 } = await segmentation.run({
+        images: inputTensor,
       });
-      const selectedIdx = nmsOutput[nmsSession.outputNames[0]];
 
+      const nmsOutput = await nms.run({
+        detection: output0,
+        config: nmsConfig,
+      });
+      const selectedIdx = nmsOutput[nms.outputNames[0]];
+
+      const hexToRgba = (hex, alpha) => {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result
+          ? [
+              parseInt(result[1], 16),
+              parseInt(result[2], 16),
+              parseInt(result[3], 16),
+              alpha,
+            ]
+          : null;
+      };
+
+      // looping through output
       for (let i = 0; i < selectedIdx.data.length; i++) {
         const idx = selectedIdx.data[i];
+        const numClass = modelLabel.length;
         const selectedData = output0.data.slice(
           idx * output0.dims[2],
           (idx + 1) * output0.dims[2]
         );
 
-        const scores = selectedData.slice(5);
-        const score = Math.max(...scores);
+        const scores = selectedData.slice(5, 5 + numClass);
+        let score = Math.max(...scores);
         const labelName = modelLabel[scores.indexOf(score)];
         if (labelName !== label) continue;
 
-        if (n === 4) {
-          const [x, y, w, h] = selectedData.slice(0, 4);
-          const [x1, y1, x2, y2] = [x - w / 2, y - h / 2, x + w / 2, y + h / 2];
+        const color = '#FF37C7';
+        let box = selectedData.slice(0, 4);
+        box = overflowBoxes(
+          [box[0] - 0.5 * box[2], box[1] - 0.5 * box[3], box[2], box[3]],
+          imageSize
+        );
 
-          // Calculate the row and column indices of
-          // the top-left and bottom-right cells of the bounding box
-          const cellSize = imageSize / n;
+        // Create mask overlay
+        const detectionTensor = new ort.Tensor(
+          'float32',
+          new Float32Array([...box, ...selectedData.slice(5 + numClass)])
+        );
 
-          for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++) {
-              const x = i * cellSize;
-              const y = j * cellSize;
-              const cell_coords = [x, y, x + cellSize, y + cellSize];
+        const maskConfig = new ort.Tensor(
+          'float32',
+          new Float32Array([
+            imageSize,
+            box[0],
+            box[1],
+            box[2],
+            box[3],
+            ...hexToRgba(color, 120),
+          ])
+        );
 
-              const intersection =
-                Math.max(
-                  0,
-                  Math.min(x2, cell_coords[2]) - Math.max(x1, cell_coords[0])
-                ) *
-                Math.max(
-                  0,
-                  Math.min(y2, cell_coords[3]) - Math.max(y1, cell_coords[1])
-                );
-              const area = cellSize * cellSize;
-              const percentage = intersection / area;
-              // console.log(
-              //   `Cell (${i},${j}) is ${percentage * 100}% in bounding box`
-              // );
-              if (!data[j * 4 + i]) {
-                data[j * 4 + i] = percentage > 0.1;
-              }
-            }
+        const { maskFilter } = await mask.run({
+          detection: detectionTensor,
+          mask: output1,
+          config: maskConfig,
+        });
+
+        // Create mask in JIMP
+        const maskImage = new Jimp(imageSize, imageSize);
+        maskImage.bitmap.data = maskFilter.data;
+
+        const gridMask = new Uint8Array(16);
+        maskImage.scan(0, 0, imageSize, imageSize, function (x, y, idx) {
+          const gridX = Math.floor(x / gridWidth);
+          const gridY = Math.floor(y / gridWidth);
+          const gridIdx = gridY * 4 + gridX;
+          if (this.bitmap.data[idx + 3] > 0) {
+            gridMask[gridIdx]++;
           }
-        } else if (n === 3) {
-          data[idxImage] = true;
-          break;
+        });
+
+        for (let i = 0; i < 16; i++) {
+          const maskCount = gridMask[i];
+          const maskPercentage = maskCount / gridPixel;
+          data[i] = data[i] || maskPercentage > 0.1;
         }
       }
     }
 
     let clicks = 0;
-    if (n === 4 && data.every((x) => x === false)) {
-      return reload();
-    }
+    console.log(data);
     for (let i = 0; i < data.length; i++) {
       if (data[i] === false) {
         continue;
