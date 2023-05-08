@@ -500,7 +500,7 @@ class Time {
       new Float32Array([10, 0.35, 0.25])
     );
     const nms = await ort.InferenceSession.create(
-      `chrome-extension://${extension_id}/models/nms.ort`
+      `chrome-extension://${extension_id}/models/nms-yolov5-det.ort`
     );
 
     if (n === 3) {
@@ -546,12 +546,9 @@ class Time {
         }
       }
     } else if (n === 4) {
-      const gridWidth = imageSize / 4;
-      const gridPixel = gridWidth ** 2;
-
       const [segmentation, mask] = await Promise.all([
         ort.InferenceSession.create(
-          `chrome-extension://${extension_id}/models/best.quant.ort`
+          `chrome-extension://${extension_id}/models/recaptcha-segmentation.ort`
         ),
         ort.InferenceSession.create(
           `chrome-extension://${extension_id}/models/mask-yolov5-seg.ort`
@@ -587,6 +584,8 @@ class Time {
       };
 
       // looping through output
+      const gridWidth = imageSize / 4;
+      const gridPixel = gridWidth ** 2;
       for (let i = 0; i < selectedIdx.data.length; i++) {
         const idx = selectedIdx.data[i];
         const numClass = modelLabel.length;
@@ -625,30 +624,35 @@ class Time {
           ])
         );
 
-        const { maskFilter } = await mask.run({
+        const maskOutput = await mask.run({
           detection: detectionTensor,
           mask: output1,
           config: maskConfig,
         });
+        const maskFilter = maskOutput[mask.outputNames[0]];
 
         // Create mask in JIMP
         const maskImage = new Jimp(imageSize, imageSize);
         maskImage.bitmap.data = maskFilter.data;
 
-        const gridMask = new Uint8Array(16);
-        maskImage.scan(0, 0, imageSize, imageSize, function (x, y, idx) {
-          const gridX = Math.floor(x / gridWidth);
-          const gridY = Math.floor(y / gridWidth);
-          const gridIdx = gridY * 4 + gridX;
-          if (this.bitmap.data[idx + 3] > 0) {
-            gridMask[gridIdx]++;
-          }
+        // Get how much percentage of mask in each grid
+        const gridMask = Array.from({ length: 4 }, () =>
+            Array.from({ length: 4 }, () => 0)
+        );
+        maskImage.scan(0, 0, imageSize, imageSize, function(x, y, idx) {
+            const gridX = Math.floor(x / gridWidth);
+            const gridY = Math.floor(y / gridWidth);
+            if (this.bitmap.data[idx + 3] > 0) {
+                gridMask[gridY][gridX] += 1;
+            }
         });
 
+        // Convert to percentage if higher than 0.15 set to true
         for (let i = 0; i < 16; i++) {
-          const maskCount = gridMask[i];
-          const maskPercentage = maskCount / gridPixel;
-          data[i] = data[i] || maskPercentage > 0.1;
+            const maskPercentage = gridMask[Math.floor(i / 4)][i % 4] / gridPixel;
+            if (maskPercentage > 0.10) {
+                data[i] = true;
+            }
         }
       }
     }
