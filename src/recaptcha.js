@@ -632,7 +632,7 @@ const overflowBoxes = (box, maxSize) => {
       // Click if not already selected
       if (!is_cell_selected(clickable_cells[i])) {
         simulateMouseClick(clickable_cells[i]);
-        await Time.random_sleep(100, 200);
+        await Time.sleep(settings.recaptcha_click_delay_time)
       }
     }
 
