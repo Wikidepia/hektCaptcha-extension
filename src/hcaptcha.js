@@ -12,28 +12,18 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 import Jimp from 'jimp';
+import { Time } from './utils.js';
+
 const ort = require('onnxruntime-web');
 
-const extension_id = chrome.runtime.id;
-
 // Modify ort wasm path
+const extension_id = chrome.runtime.id;
 ort.env.wasm.wasmPaths = {
   'ort-wasm.wasm': `chrome-extension://${extension_id}/dist/ort-wasm.wasm`,
   'ort-wasm-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-threaded.wasm`,
   'ort-wasm-simd.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-simd.wasm`,
   'ort-wasm-simd-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-simd-threaded.wasm`,
 };
-
-class Time {
-  static sleep(i = 1000) {
-    return new Promise((resolve) => setTimeout(resolve, i));
-  }
-
-  static async random_sleep(min, max) {
-    const duration = Math.floor(Math.random() * (max - min) + min);
-    return await Time.sleep(duration);
-  }
-}
 
 async function letterboxImage(image, size) {
   const iw = image.bitmap.width;

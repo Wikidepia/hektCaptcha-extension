@@ -12,11 +12,12 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 import Jimp from 'jimp';
+import { KVStorage, Time } from './utils.js';
+
 const ort = require('onnxruntime-web');
 
-const extension_id = chrome.runtime.id;
-
 // Modify ort wasm path
+const extension_id = chrome.runtime.id;
 ort.env.wasm.wasmPaths = {
   'ort-wasm.wasm': `chrome-extension://${extension_id}/dist/ort-wasm.wasm`,
   'ort-wasm-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-threaded.wasm`,
@@ -119,24 +120,6 @@ const overflowBoxes = (box, maxSize) => {
   box[3] = box[1] + box[3] <= maxSize ? box[3] : maxSize - box[1];
   return box;
 };
-
-class Time {
-  static time() {
-    if (!Date.now) {
-      Date.now = () => new Date().getTime();
-    }
-    return Date.now();
-  }
-
-  static sleep(i = 1000) {
-    return new Promise((resolve) => setTimeout(resolve, i));
-  }
-
-  static async random_sleep(min, max) {
-    const duration = Math.floor(Math.random() * (max - min) + min);
-    return await Time.sleep(duration);
-  }
-}
 
 (async () => {
   function is_widget_frame() {
@@ -332,19 +315,10 @@ class Time {
 
   async function on_widget_frame() {
     // Check if parent frame marked this frame as visible on screen
-    const is_visible = await new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        {
-          type: 'KV_GET',
-          label: {
-            key: 'recaptcha_widget_visible',
-            tab_specific: true,
-          },
-        },
-        resolve
-      );
+    const is_visible = await KVStorage.get({
+      key: 'recaptcha_widget_visible',
+      tab_specific: true,
     });
-
     if (is_visible.value !== true) {
       return;
     }
@@ -363,19 +337,10 @@ class Time {
 
   async function on_image_frame(settings) {
     // Check if parent frame marked this frame as visible on screen
-    const is_visible = await new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        {
-          type: 'KV_GET',
-          label: {
-            key: 'recaptcha_image_visible',
-            tab_specific: true,
-          },
-        },
-        resolve
-      );
+    const is_visible = await KVStorage.get({
+      key: 'recaptcha_image_visible',
+      tab_specific: true,
     });
-
     if (is_visible.value !== true) {
       return;
     }
@@ -637,28 +602,27 @@ class Time {
 
         // Get how much percentage of mask in each grid
         const gridMask = Array.from({ length: 4 }, () =>
-            Array.from({ length: 4 }, () => 0)
+          Array.from({ length: 4 }, () => 0)
         );
-        maskImage.scan(0, 0, imageSize, imageSize, function(x, y, idx) {
-            const gridX = Math.floor(x / gridWidth);
-            const gridY = Math.floor(y / gridWidth);
-            if (this.bitmap.data[idx + 3] > 0) {
-                gridMask[gridY][gridX] += 1;
-            }
+        maskImage.scan(0, 0, imageSize, imageSize, function (x, y, idx) {
+          const gridX = Math.floor(x / gridWidth);
+          const gridY = Math.floor(y / gridWidth);
+          if (this.bitmap.data[idx + 3] > 0) {
+            gridMask[gridY][gridX] += 1;
+          }
         });
 
         // Convert to percentage if higher than 0.15 set to true
         for (let i = 0; i < 16; i++) {
-            const maskPercentage = gridMask[Math.floor(i / 4)][i % 4] / gridPixel;
-            if (maskPercentage > 0.10) {
-                data[i] = true;
-            }
+          const maskPercentage = gridMask[Math.floor(i / 4)][i % 4] / gridPixel;
+          if (maskPercentage > 0.1) {
+            data[i] = true;
+          }
         }
       }
     }
 
     let clicks = 0;
-    console.log(data);
     for (let i = 0; i < data.length; i++) {
       if (data[i] === false) {
         continue;
