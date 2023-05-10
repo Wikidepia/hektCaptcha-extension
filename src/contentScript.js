@@ -405,8 +405,8 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         // If argmaxValue is 1, click on cell (if it is not already selected)
         if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
-          simulateMouseClick(cells[i]);
           await Time.sleep(settings.click_delay_time);
+          simulateMouseClick(cells[i]);
         }
       }
 
