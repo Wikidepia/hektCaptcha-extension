@@ -37,7 +37,12 @@
       "match_about_blank": false
     },
     {
-      "matches": ["*://*.google.com/recaptcha/api2/*"],
+      "matches": [
+        "*://*.google.com/recaptcha/api2/*",
+        "*://*.google.com/recaptcha/enterprise/*",
+        "*://*.recaptcha.net/recaptcha/api2/*",
+        "*://*.recaptcha.net/recaptcha/enterprise/*"
+      ],
       "js": ["recaptcha.js"],
       "run_at": "document_end",
       "all_frames": true,
