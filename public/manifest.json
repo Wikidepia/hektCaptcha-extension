@@ -16,7 +16,10 @@
     "default_title": "hektCaptcha",
     "default_popup": "popup.html"
   },
-  "permissions": ["storage"],
+  "permissions": [
+    "storage",
+    "declarativeNetRequest"
+  ],
   "web_accessible_resources": [
     {
       "resources": ["dist/*"],
@@ -27,7 +30,18 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "host_permissions": ["*://hekt.akmal.dev/*"],
+  "host_permissions": [
+    "*://hekt.akmal.dev/*",
+    "*://*.google.com/recaptcha/*",
+    "*://*.recaptcha.net/recaptcha/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [{
+      "id": "ruleset_1",
+      "enabled": true,
+      "path": "rules.json"
+    }]
+  },
   "content_scripts": [
     {
       "matches": ["*://*.hcaptcha.com/captcha/*"],
@@ -37,7 +51,12 @@
       "match_about_blank": false
     },
     {
-      "matches": ["*://*.google.com/recaptcha/api2/*"],
+      "matches": [
+        "*://*.google.com/recaptcha/api2/*",
+        "*://*.google.com/recaptcha/enterprise/*",
+        "*://*.recaptcha.net/recaptcha/api2/*",
+        "*://*.recaptcha.net/recaptcha/enterprise/*"
+      ],
       "js": ["recaptcha.js"],
       "run_at": "document_end",
       "all_frames": true,
