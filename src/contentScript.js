@@ -14,14 +14,16 @@
 import Jimp from 'jimp';
 const ort = require('onnxruntime-web');
 
-const extension_id = chrome.runtime.id;
-
 // Modify ort wasm path
 ort.env.wasm.wasmPaths = {
-  'ort-wasm.wasm': `chrome-extension://${extension_id}/dist/ort-wasm.wasm`,
-  'ort-wasm-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-threaded.wasm`,
-  'ort-wasm-simd.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-simd.wasm`,
-  'ort-wasm-simd-threaded.wasm': `chrome-extension://${extension_id}/dist/ort-wasm-simd-threaded.wasm`,
+  'ort-wasm.wasm': chrome.runtime.getURL('dist/ort-wasm.wasm'),
+  'ort-wasm-threaded.wasm': chrome.runtime.getURL(
+    'dist/ort-wasm-threaded.wasm'
+  ),
+  'ort-wasm-simd.wasm': chrome.runtime.getURL('dist/ort-wasm-simd.wasm'),
+  'ort-wasm-simd-threaded.wasm': chrome.runtime.getURL(
+    'dist/ort-wasm-simd-threaded.wasm'
+  ),
 };
 
 class Time {
@@ -127,9 +129,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       cancelable: true,
       clientX: clientX,
       clientY: clientY,
-      sourceCapabilities: new InputDeviceCapabilities({
-        firesTouchEvents: false,
-      }),
     });
     element.dispatchEvent(event);
   });
@@ -349,7 +348,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     const { task, type, cells, urls } = await on_task_ready();
 
     const featSession = await ort.InferenceSession.create(
-      `chrome-extension://${extension_id}/models/mobilenetv3.ort`
+      chrome.runtime.getURL('models/mobilenetv3.ort')
     );
 
     // Usual 3x3 grid, classify
@@ -375,7 +374,11 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         return;
       }
       const model = await fetch(fetchModel.base64);
-      const modelBuffer = await model.arrayBuffer();
+      const buffer = await model.arrayBuffer();
+      const modelBuffer = new ArrayBuffer(buffer.byteLength);
+      const view = new Uint8Array(modelBuffer);
+      view.set(new Uint8Array(buffer));
+
       const classifierSession = await ort.InferenceSession.create(modelBuffer);
 
       // Solve task
@@ -477,7 +480,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const session = await ort.InferenceSession.create(modelBuffer);
 
       const nmsSession = await ort.InferenceSession.create(
-        `chrome-extension://${extension_id}/models/nms.ort`
+        chrome.runtime.getURL('models/nms.ort')
       );
 
       const cellWidth = cells[0].getBoundingClientRect().width;
