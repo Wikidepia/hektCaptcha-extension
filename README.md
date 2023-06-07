@@ -22,6 +22,15 @@ Download from [Chrome Web Store](https://chrome.google.com/webstore/detail/hektc
 4. Enable `Developer mode`
 5. Click `Load unpacked` and select the folder
 
+## Build
+
+To build the extension, make sure you have [Node.js](https://nodejs.org/) installed. Then run:
+
+```bash
+npm install
+npm run build
+```
+
 ## Acknowledgment
 
 This project is based on the MIT-licensed [NopeCHA extension](https://github.com/NopeCHALLC/nopecha-extension). Using model from [hektCaptcha-model](https://github.com/Wikidepia/hektCaptcha-model/).
