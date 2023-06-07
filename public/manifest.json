@@ -10,7 +10,7 @@
     "128": "icons/icon_128.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"]
   },
   "action": {
     "default_title": "hektCaptcha",
@@ -36,5 +36,10 @@
       "all_frames": true,
       "match_about_blank": false
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hekt@akmal.dev"
+    }
+  }
 }
