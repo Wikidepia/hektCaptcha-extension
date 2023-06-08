@@ -11,35 +11,35 @@ import './popup.css';
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
 
-  function setupSetting() {
-    let settings = chrome.storage.local.get(null);
-    // If settings is empty, set default settings
-    if (Object.keys(settings).length === 0) {
-      settings = {
-        auto_open: true,
-        auto_solve: true,
-        click_delay_time: 300,
-        solve_delay_time: 3000,
-      };
-      chrome.storage.local.set(settings);
-    }
+  const settingsDefault = {
+    auto_open: true,
+    auto_solve: true,
+    click_delay_time: 300,
+    solve_delay_time: 3000,
+  };
 
+  function setupSetting() {
     // Restore settings
-    chrome.storage.local.get(
-      ['auto_open', 'auto_solve', 'click_delay_time', 'solve_delay_time'],
-      async (e) => {
-        const toggleElements =
-          document.getElementsByClassName('settings_toggle');
-        const textElements = document.getElementsByClassName('settings_text');
-        for (const g of toggleElements) {
-          g.classList.remove('on', 'off');
-          g.classList.add(e[g.dataset.settings] ? 'on' : 'off');
-        }
-        for (const g of textElements) {
-          g.value = e[g.dataset.settings];
+    chrome.storage.local.get(null, async (e) => {
+      const toggleElements = Array.from(document.getElementsByClassName('settings_toggle'));
+      const textElements = Array.from(document.getElementsByClassName('settings_text'));
+
+      for (const key of Object.keys(settingsDefault)) {
+        if (e[key] === undefined) {
+          await chrome.storage.local.set({ [key]: settingsDefault[key] });
+          e[key] = settingsDefault[key]
         }
       }
-    );
+
+      for (let i = 0; i < toggleElements.length; i++) {
+        const toggle = toggleElements[i];
+        const text = textElements[i];
+
+        toggle.classList.remove('on', 'off');
+        toggle.classList.add(e[toggle.dataset.settings] ? 'on' : 'off');
+        text.value = e[text.dataset.settings];
+      }
+    });
 
     // Add change listener to settings
     const handleSettingChange = async (element) => {
