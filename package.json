@@ -4,7 +4,8 @@
   "description": "Automatically solve hCaptcha using AI.",
   "private": true,
   "scripts": {
-    "watch": "webpack --mode=development --watch --config config/webpack.config.js",
+    "watch": "webpack --mode=development --watch --env browser=chrome --config config/webpack.config.js",
+    "watch:firefox": "webpack --mode=development --watch --env browser=firefox --config config/webpack.config.js",
     "build": "webpack --mode=production --env browser=chrome --config config/webpack.config.js",
     "build:firefox": "webpack --mode=production --env browser=firefox --config config/webpack.config.js",
     "format": "prettier --write --ignore-unknown \"{config,public,src}/**/*.{html,css,js,ts,json}\""
