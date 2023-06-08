@@ -364,22 +364,16 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const fetchModel = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: 'CLASSIFIER', label }, resolve);
-      });
+      const modelURL = `https://hekt.akmal.dev/${label}.ort`;
+      const fetchModel = await fetch(modelURL, { method: 'HEAD' });
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
         if (refreshButton.isConnected) await refresh();
         return;
       }
-      const model = await fetch(fetchModel.base64);
-      const buffer = await model.arrayBuffer();
-      const modelBuffer = new ArrayBuffer(buffer.byteLength);
-      const view = new Uint8Array(modelBuffer);
-      view.set(new Uint8Array(buffer));
 
-      const classifierSession = await ort.InferenceSession.create(modelBuffer);
+      const classifierSession = await ort.InferenceSession.create(modelURL);
 
       // Solve task
       for (let i = 0; i < urls.length; i++) {

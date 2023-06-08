@@ -14,32 +14,3 @@ chrome.runtime.onInstalled.addListener(async () => {
     solve_delay_time: 3000,
   });
 });
-
-const convertBlobToBase64 = async (blob) => {
-  const reader = new FileReader();
-  return new Promise((resolve) => {
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
-};
-
-chrome.runtime.onMessage.addListener(function (
-  { type, label },
-  sender,
-  sendResponse
-) {
-  (async () => {
-    if (type === 'CLASSIFIER') {
-      const modelURL = `https://hekt.akmal.dev/${label}.ort`;
-      try {
-        const response = await fetch(modelURL);
-        const blob = await response.blob();
-        const base64 = await convertBlobToBase64(blob);
-        sendResponse({ status: response.status, base64: base64 });
-      } catch (error) {
-        sendResponse({ status: 'error', message: error.message });
-      }
-    }
-  })();
-  return true;
-});
