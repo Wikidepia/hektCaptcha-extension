@@ -55,6 +55,9 @@ const common = {
         {
           from: '**/*',
           context: 'public',
+          globOptions: {
+            ignore: ['**/manifest*.json'],
+          },
         },
       ],
     }),

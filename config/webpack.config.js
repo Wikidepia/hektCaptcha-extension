@@ -5,6 +5,7 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const common = require('./webpack.common.js');
+const ManifestPlugin = require('./manifest.js');
 const PATHS = require('./paths');
 
 // Merge webpack configuration files
@@ -47,6 +48,9 @@ const config = (env, argv) =>
       }),
       new webpack.ProvidePlugin({
         process: 'process/browser',
+      }),
+      new ManifestPlugin({
+        browser: env.browser,
       }),
     ],
     devtool: argv.mode === 'production' ? false : 'source-map',
