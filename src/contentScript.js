@@ -555,6 +555,17 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
 
     let settings = await chrome.storage.local.get(null);
+    // If settings is empty, set default settings
+    if (Object.keys(settings).length === 0) {
+      settings = {
+        auto_open: true,
+        auto_solve: true,
+        click_delay_time: 300,
+        solve_delay_time: 3000,
+      };
+      await chrome.storage.local.set(settings);
+    }
+
     if (is_widget_frame() && settings.auto_open) {
       await on_widget_frame();
     } else if (is_image_frame() && settings.auto_solve) {

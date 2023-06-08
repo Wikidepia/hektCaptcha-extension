@@ -12,6 +12,18 @@ import './popup.css';
   // https://developer.chrome.com/extensions/declare_permissions
 
   function setupSetting() {
+    let settings = chrome.storage.local.get(null);
+    // If settings is empty, set default settings
+    if (Object.keys(settings).length === 0) {
+      settings = {
+        auto_open: true,
+        auto_solve: true,
+        click_delay_time: 300,
+        solve_delay_time: 3000,
+      };
+      chrome.storage.local.set(settings);
+    }
+
     // Restore settings
     chrome.storage.local.get(
       ['auto_open', 'auto_solve', 'click_delay_time', 'solve_delay_time'],
