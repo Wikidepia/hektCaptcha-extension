@@ -313,6 +313,11 @@ const overflowBoxes = (box, maxSize) => {
     return false;
   }
 
+  function softmax(x) {
+    const e_x = x.map((v) => Math.exp(v));
+    const sum_e_x = e_x.reduce((a, b) => a + b, 0);
+    return e_x.map((v) => v / sum_e_x);
+  }
   async function on_widget_frame() {
     // Check if parent frame marked this frame as visible on screen
     const is_visible = await KVStorage.get({
@@ -431,9 +436,11 @@ const overflowBoxes = (box, maxSize) => {
       .replace('Select all images with', '')
       .trim()
       .replace(/^(a|an)\s+/i, '')
-      .toLowerCase();
+      .toLowerCase()
+      .replace(' ', '_');
     label = normalizedLabel[label] || label;
 
+    if (n !== 3) return reload();
     const subImages = [];
     if (background_url === null) {
       for (const url of image_urls) {
@@ -458,65 +465,72 @@ const overflowBoxes = (box, maxSize) => {
       }
     }
 
-    const imageSize = 320;
-    // Initialize NMS
-    const nmsConfig = new ort.Tensor(
-      'float32',
-      new Float32Array([10, 0.35, 0.25])
-    );
-    const nms = await ort.InferenceSession.create(
-      `chrome-extension://${extension_id}/models/nms-yolov5-det.ort`
-    );
-
     if (n === 3) {
       // Initialize recaptcha detection model
-      const session = await ort.InferenceSession.create(
-        `chrome-extension://${extension_id}/models/recaptcha-detection.ort`
+      const [featSession, classifierSession] = await Promise.all([
+        ort.InferenceSession.create(
+          chrome.runtime.getURL('models/mobilenetv3.ort')
+        ),
+        ort.InferenceSession.create(
+          chrome.runtime.getURL(`models/${label}.ort`)
+        ),
+      ]);
+
+      const outputs = {};
+      for (let i = 0; i < subImages.length; i++) {
+        const subImage = subImages[i];
+
+        // Resize image to 224x224 with bilinear interpolation
+        subImage.resize(224, 224, Jimp.RESIZE_BILINEAR);
+
+        // Convert image data to tensor
+        const input = imageDataToTensor(subImage, [1, 3, 224, 224]);
+
+        // Feed input tensor to feature extractor model and run it
+        const featOutputs = await featSession.run({ input: input });
+        const feats = featOutputs[featSession.outputNames[0]];
+
+        // Feed feats to classifier
+        const classifierOutputs = await classifierSession.run({ input: feats });
+        const output = classifierOutputs[classifierSession.outputNames[0]].data;
+
+        // Find confidence score of output
+        const confidence = softmax(output);
+        outputs[i] = confidence[1];
+      }
+
+      // Sort outputs by confidence
+      const sortedOutputs = Object.keys(outputs).sort(
+        (a, b) => outputs[b] - outputs[a]
       );
 
-      for (let idxImage = 0; idxImage < subImages.length; idxImage++) {
-        const subImage = subImages[idxImage];
-
-        const inputImage = subImage.resize(imageSize, imageSize);
-        const inputTensor = imageDataToTensor(
-          inputImage,
-          [1, 3, imageSize, imageSize],
-          false
-        );
-
-        // YOLOv5 detector
-        const { output0 } = await session.run({ images: inputTensor });
-
-        // NMS (Non-Maximum Suppression)
-        const nmsOutput = await nms.run({
-          detection: output0,
-          config: nmsConfig,
-        });
-        const selectedIdx = nmsOutput[nms.outputNames[0]];
-
-        for (let i = 0; i < selectedIdx.data.length; i++) {
-          const idx = selectedIdx.data[i];
-          const selectedData = output0.data.slice(
-            idx * output0.dims[2],
-            (idx + 1) * output0.dims[2]
-          );
-
-          const scores = selectedData.slice(5);
-          const score = Math.max(...scores);
-          const labelName = modelLabel[scores.indexOf(score)];
-          if (labelName === label) {
-            data[idxImage] = true;
-            break;
-          }
+      let possibleTrue = sortedOutputs.filter((idx) => outputs[idx] > 0.9);
+      if (![3, 4].includes(possibleTrue.length) && subImages.length === 9) {
+        // if confidence between 3rd and 4th is smaller than 0.025, then include 4th
+        possibleTrue = sortedOutputs.slice(0, 3);
+        if (
+          sortedOutputs.length > 3 &&
+          outputs[sortedOutputs[2]] - outputs[sortedOutputs[3]] < 0.025
+        ) {
+          possibleTrue = sortedOutputs.slice(0, 4);
         }
       }
+      possibleTrue.forEach((idx) => (data[idx] = true));
     } else if (n === 4) {
-      const [segmentation, mask] = await Promise.all([
+      const imageSize = 320;
+      const nmsConfig = new ort.Tensor(
+        'float32',
+        new Float32Array([10, 0.35, 0.25])
+      );
+      const [segmentation, mask, nms] = await Promise.all([
         ort.InferenceSession.create(
           `chrome-extension://${extension_id}/models/recaptcha-segmentation.ort`
         ),
         ort.InferenceSession.create(
           `chrome-extension://${extension_id}/models/mask-yolov5-seg.ort`
+        ),
+        ort.InferenceSession.create(
+          `chrome-extension://${extension_id}/models/nms-yolov5-det.ort`
         ),
       ]);
 
@@ -632,7 +646,7 @@ const overflowBoxes = (box, maxSize) => {
       // Click if not already selected
       if (!is_cell_selected(clickable_cells[i])) {
         simulateMouseClick(clickable_cells[i]);
-        await Time.sleep(settings.recaptcha_click_delay_time)
+        await Time.sleep(settings.recaptcha_click_delay_time);
       }
     }
 
