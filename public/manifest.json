@@ -16,10 +16,7 @@
     "default_title": "hektCaptcha",
     "default_popup": "popup.html"
   },
-  "permissions": [
-    "storage",
-    "declarativeNetRequest"
-  ],
+  "permissions": ["storage", "declarativeNetRequest"],
   "web_accessible_resources": [
     {
       "resources": ["dist/*"],
@@ -36,11 +33,13 @@
     "*://*.recaptcha.net/recaptcha/*"
   ],
   "declarative_net_request": {
-    "rule_resources": [{
-      "id": "ruleset_1",
-      "enabled": true,
-      "path": "rules.json"
-    }]
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   },
   "content_scripts": [
     {

@@ -7,10 +7,12 @@
       "redirect": {
         "transform": {
           "queryTransform": {
-            "addOrReplaceParams": [{
-              "key": "hl",
-              "value": "en-US"
-            }]
+            "addOrReplaceParams": [
+              {
+                "key": "hl",
+                "value": "en-US"
+              }
+            ]
           }
         }
       }
