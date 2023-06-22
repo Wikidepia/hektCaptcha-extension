@@ -419,15 +419,15 @@ const overflowBoxes = (box, maxSize) => {
       'car',
       'chimney',
       'crosswalk',
-      'fire hydrant',
+      'fire_hydrant',
       'motorcycle',
-      'mountain or hill',
-      'palm tree',
-      'parking meter',
+      'mountain_or_hill',
+      'palm_tree',
+      'parking_meter',
       'stair',
       'taxi',
       'tractor',
-      'traffic light',
+      'traffic_light',
     ];
 
     const data = Array(16).fill(false);
