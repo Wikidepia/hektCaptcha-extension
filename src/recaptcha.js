@@ -440,7 +440,6 @@ const overflowBoxes = (box, maxSize) => {
       .replace(' ', '_');
     label = normalizedLabel[label] || label;
 
-    if (n !== 3) return reload();
     const subImages = [];
     if (background_url === null) {
       for (const url of image_urls) {
@@ -466,14 +465,19 @@ const overflowBoxes = (box, maxSize) => {
     }
 
     if (n === 3) {
+      const modelURL = `https://hekt.akmal.dev/${label}-rc.ort`;
+      const fetchModel = await fetch(modelURL, { method: 'HEAD' });
+      if (fetchModel.status !== 200) {
+        console.log('error getting model', fetchModel, label);
+        return reload();
+      }
+
       // Initialize recaptcha detection model
       const [featSession, classifierSession] = await Promise.all([
         ort.InferenceSession.create(
           chrome.runtime.getURL('models/mobilenetv3.ort')
         ),
-        ort.InferenceSession.create(
-          chrome.runtime.getURL(`models/${label}.ort`)
-        ),
+        ort.InferenceSession.create(modelURL),
       ]);
 
       const outputs = {};
@@ -504,7 +508,7 @@ const overflowBoxes = (box, maxSize) => {
         (a, b) => outputs[b] - outputs[a]
       );
 
-      let possibleTrue = sortedOutputs.filter((idx) => outputs[idx] > 0.9);
+      let possibleTrue = sortedOutputs.filter((idx) => outputs[idx] > 0.7);
       if (![3, 4].includes(possibleTrue.length) && subImages.length === 9) {
         // if confidence between 3rd and 4th is smaller than 0.025, then include 4th
         possibleTrue = sortedOutputs.slice(0, 3);
