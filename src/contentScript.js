@@ -457,22 +457,16 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         return submit();
       }
     } else if (type == 'BOUNDING_BOX') {
-      const fetchModel = await new Promise((resolve) => {
-        chrome.runtime.sendMessage(
-          { type: 'CLASSIFIER', label: 'detector' },
-          resolve
-        );
-      });
+      const modelURL = `https://hekt.akmal.dev/detector.ort`;
+      const fetchModel = await fetch(modelURL, { method: 'HEAD' });
 
       if (fetchModel.status !== 200) {
-        console.log('error getting detector model', fetchModel);
+        console.log('error getting model', fetchModel, label);
         if (refreshButton.isConnected) await refresh();
         return;
       }
-      const model = await fetch(fetchModel.base64);
-      const modelBuffer = await model.arrayBuffer();
-      const session = await ort.InferenceSession.create(modelBuffer);
 
+      const session = await ort.InferenceSession.create(modelURL);
       const nmsSession = await ort.InferenceSession.create(
         chrome.runtime.getURL('models/nms.ort')
       );

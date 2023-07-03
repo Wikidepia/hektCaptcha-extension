@@ -21,13 +21,17 @@ import './popup.css';
   function setupSetting() {
     // Restore settings
     chrome.storage.local.get(null, async (e) => {
-      const toggleElements = Array.from(document.getElementsByClassName('settings_toggle'));
-      const textElements = Array.from(document.getElementsByClassName('settings_text'));
+      const toggleElements = Array.from(
+        document.getElementsByClassName('settings_toggle')
+      );
+      const textElements = Array.from(
+        document.getElementsByClassName('settings_text')
+      );
 
       for (const key of Object.keys(settingsDefault)) {
         if (e[key] === undefined) {
           await chrome.storage.local.set({ [key]: settingsDefault[key] });
-          e[key] = settingsDefault[key]
+          e[key] = settingsDefault[key];
         }
       }
 
