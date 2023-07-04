@@ -518,6 +518,12 @@ const overflowBoxes = (box, maxSize) => {
         ) {
           possibleTrue = sortedOutputs.slice(0, 4);
         }
+      } else if (
+        // Logic for 2nd try at hard recaptcha
+        [3, 4].includes(subImages.length) &&
+        possibleTrue.length === 0
+      ) {
+        possibleTrue = sortedOutputs.filter((idx) => outputs[idx] > 0.6);
       }
       possibleTrue.forEach((idx) => (data[idx] = true));
     } else if (n === 4) {
@@ -665,10 +671,12 @@ const overflowBoxes = (box, maxSize) => {
     if (
       (n === 3 && is_hard && clicks === 0 && (await on_images_ready())) ||
       (n === 3 && !is_hard) ||
-      n === 4
+      (n === 4 && clicks !== 0)
     ) {
       await Time.sleep(200);
       return submit();
+    } else if (n === 4 && clicks === 0) {
+      return reload();
     }
   }
 
