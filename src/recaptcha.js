@@ -463,6 +463,7 @@ const overflowBoxes = (box, maxSize) => {
         }
       }
     }
+    if (subImages.length === 0) return;
 
     if (n === 3) {
       const modelURL = `https://hekt.akmal.dev/${label}-rc.ort`;
