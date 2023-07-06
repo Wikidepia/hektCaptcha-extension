@@ -464,9 +464,8 @@ const overflowBoxes = (box, maxSize) => {
       }
     }
     if (subImages.length === 0) return;
-
     if (n === 3) {
-      const modelURL = `https://hekt.akmal.dev/${label}-rc.ort`;
+      const modelURL = `https://hekt.akmal.dev/${label}-rc-b1.ort`;
       const fetchModel = await fetch(modelURL, { method: 'HEAD' });
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
@@ -474,12 +473,7 @@ const overflowBoxes = (box, maxSize) => {
       }
 
       // Initialize recaptcha detection model
-      const [featSession, classifierSession] = await Promise.all([
-        ort.InferenceSession.create(
-          chrome.runtime.getURL('models/mobilenetv3.ort')
-        ),
-        ort.InferenceSession.create(modelURL),
-      ]);
+      const classifierSession = await ort.InferenceSession.create(modelURL);
 
       const outputs = {};
       for (let i = 0; i < subImages.length; i++) {
@@ -491,12 +485,8 @@ const overflowBoxes = (box, maxSize) => {
         // Convert image data to tensor
         const input = imageDataToTensor(subImage, [1, 3, 224, 224]);
 
-        // Feed input tensor to feature extractor model and run it
-        const featOutputs = await featSession.run({ input: input });
-        const feats = featOutputs[featSession.outputNames[0]];
-
         // Feed feats to classifier
-        const classifierOutputs = await classifierSession.run({ input: feats });
+        const classifierOutputs = await classifierSession.run({ input: input });
         const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
         // Find confidence score of output
