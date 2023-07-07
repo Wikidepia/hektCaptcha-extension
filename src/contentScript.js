@@ -483,6 +483,11 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       );
       const detConfig = await fetchConfig.json();
 
+      if (!detConfig.includes(label)) {
+        if (refreshButton.isConnected) await refresh();
+        return;
+      }
+
       const cellWidth = cells[0].getBoundingClientRect().width;
       const cellHeight = cells[0].getBoundingClientRect().height;
 
@@ -552,7 +557,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         await Time.sleep(settings.solve_delay_time);
         return submit();
       }
-      return await refresh();
+      if (refreshButton.isConnected) await refresh();
     } else {
       if (refreshButton.isConnected) await refresh();
     }
