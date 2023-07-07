@@ -506,7 +506,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       });
       const selectedIdx = nmsOutput[nmsSession.outputNames[0]];
       if (selectedIdx.data.length === 0) {
-        return refresh();
+        return await refresh();
       }
 
       for (let i = 0; i < selectedIdx.data.length; i++) {
