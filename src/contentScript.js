@@ -457,8 +457,19 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         return submit();
       }
     } else if (type == 'BOUNDING_BOX') {
+      // Get label for image
+      const label = task
+        .replace('Please click on the', '')
+        .trim()
+        .replace(/^(a|an)\s+/i, '')
+        .replace(/'/g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+
       const modelURL = `https://hekt.akmal.dev/detector.ort`;
+      const configURL = `https://hekt.akmal.dev/detector.json`;
       const fetchModel = await fetch(modelURL, { method: 'HEAD' });
+      const fetchConfig = await fetch(configURL);
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
@@ -470,6 +481,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const nmsSession = await ort.InferenceSession.create(
         chrome.runtime.getURL('models/nms.ort')
       );
+      const detConfig = await fetchConfig.json();
 
       const cellWidth = cells[0].getBoundingClientRect().width;
       const cellHeight = cells[0].getBoundingClientRect().height;
@@ -486,7 +498,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
-        new Float32Array([1, 0.45, 0.1])
+        new Float32Array([10, 0.45, 0.2])
       );
       const inputImage = await letterboxImage(image, [640, 640]);
       const inputTensor = imageDataToTensor(
@@ -505,9 +517,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         config: config,
       });
       const selectedIdx = nmsOutput[nmsSession.outputNames[0]];
-      if (selectedIdx.data.length === 0) {
-        return await refresh();
-      }
 
       for (let i = 0; i < selectedIdx.data.length; i++) {
         const idx = selectedIdx.data[i];
@@ -515,6 +524,12 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           idx * output0.dims[2],
           (idx + 1) * output0.dims[2]
         );
+
+        // Get max score and class
+        const scores = data.slice(5);
+        const detIdx = scores.indexOf(Math.max(...scores));
+        if (detConfig[detIdx] !== label) continue;
+
         const [x, y, w, h] = data.slice(0, 4);
 
         const [x1, y1, w1, h1] = scaleBoxes(
@@ -537,6 +552,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         await Time.sleep(settings.solve_delay_time);
         return submit();
       }
+      return await refresh();
     } else {
       if (refreshButton.isConnected) await refresh();
     }
