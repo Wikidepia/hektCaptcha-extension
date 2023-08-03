@@ -12,6 +12,5 @@
 npm-debug.log*
 
 # hektCaptcha
-model
+dev
 onnxruntime-web-minimal
-popup
