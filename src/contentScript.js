@@ -100,6 +100,12 @@ function cosineSimilarity(a, b) {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
+function softmax(x) {
+  const e_x = x.map((v) => Math.exp(v));
+  const sum_e_x = e_x.reduce((a, b) => a + b, 0);
+  return e_x.map((v) => v / sum_e_x);
+}
+
 function simulateMouseClick(element, clientX = null, clientY = null) {
   if (clientX === null || clientY === null) {
     const box = element.getBoundingClientRect();
@@ -247,10 +253,8 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         const cells = [];
         const urls = [];
         // Get image URLs and cells
-        if (type === 'CLASSIFY' || type === 'MULTI_CHOICE') {
-          const $cells = document.querySelectorAll(
-            '.task-image, .challenge-answer'
-          );
+        if (type === 'CLASSIFY') {
+          const $cells = document.querySelectorAll('.task-image');
 
           if ($cells.length === 0) {
             checking = false;
@@ -273,6 +277,29 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
             cells.push($e);
             urls.push(url);
           }
+        } else if (type === 'MULTI_CHOICE') {
+          const $task = document.querySelector('.task-image');
+          const $answers = document.querySelectorAll('.challenge-answer');
+
+          if ($answers.length === 0) {
+            checking = false;
+            return;
+          }
+
+          const $img = $task.querySelector('div.image');
+          if (!$img) {
+            checking = false;
+            return;
+          }
+
+          const url = get_image_url($img);
+          if (!url || url === '') {
+            checking = false;
+            return;
+          }
+
+          urls.push(url);
+          cells.push(...$answers);
         } else if (type === 'BOUNDING_BOX') {
           const $canvas = document.querySelector('.challenge-view > canvas');
           if (!$canvas) {
@@ -414,46 +441,45 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
     // 1x3 grid, multi choice (similar image)
     else if (type == 'MULTI_CHOICE') {
-      const embeddings = await Promise.all(
-        urls.map(async (url) => {
-          // Read image from URL
-          const image = await Jimp.read(url);
+      // Read main image from URL
+      const image = await Jimp.read(urls[0]);
 
-          // Resize image to 224x224 with bilinear interpolation
-          image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+      // Resize image to 224x224 with bilinear interpolation
+      image.resize(224, 224, Jimp.RESIZE_BILINEAR);
 
-          // Convert image data to tensor
-          const input = imageDataToTensor(image, [1, 3, 224, 224]);
+      // Convert image data to tensor
+      const input = imageDataToTensor(image, [1, 3, 224, 224]);
 
-          // Feed input tensor to feature extractor model and run it
-          const featOutputs = await featSession.run({ input: input });
-          const feats = featOutputs[featSession.outputNames[0]];
+      // Feed input tensor to feature extractor model and run it
+      const featOutputs = await featSession.run({ input: input });
+      const feats = featOutputs[featSession.outputNames[0]];
 
-          return feats.data;
-        })
-      );
+      const outputs = [];
+      for (let i = 0; i < cells.length; i++) {
+        const label = cells[i].querySelector('.answer-text').textContent;
+        const modelURL = `https://hekt.akmal.dev/${label}.ort`;
+        const fetchModel = await fetch(modelURL, { method: 'HEAD' });
 
-      // Get first embeddings (task-image)
-      const taskEmbedding = embeddings[0];
-      embeddings.shift();
-      cells.shift();
+        if (fetchModel.status !== 200) {
+          console.log('error getting model', fetchModel, label);
+          if (refreshButton.isConnected) await refresh();
+          return;
+        }
 
-      // Get highest cosine similarity with taskEmbedding in one shot
-      // Thanks Copilot.
-      const highestSimIdx = embeddings
-        .map((embedding) => cosineSimilarity(taskEmbedding, embedding))
-        .reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
+        const classifierSession = await ort.InferenceSession.create(modelURL);
+        const classifierOutputs = await classifierSession.run({ input: feats });
+        const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
-      if (
-        cells[highestSimIdx].isConnected &&
-        !is_cell_selected(cells[highestSimIdx])
-      ) {
-        // Click on cell with highest similarity
-        await Time.sleep(settings.click_delay_time);
-        simulateMouseClick(cells[highestSimIdx]);
+        const confidence = softmax(output);
+        outputs[i] = confidence[1];
+      }
 
-        // Submit
-        await Time.sleep(settings.click_delay_time * 2.5);
+      const positiveCell = cells[outputs.indexOf(Math.max(...outputs))];
+      // Click highest confidence cell
+      if (!is_cell_selected(positiveCell)) {
+        await Time.sleep(settings.solve_delay_time / 2);
+        simulateMouseClick(positiveCell);
+        await Time.sleep(settings.solve_delay_time / 2);
         return submit();
       }
     } else if (type == 'BOUNDING_BOX') {
