@@ -16,6 +16,7 @@ import './popup.css';
     auto_solve: true,
     click_delay_time: 300,
     solve_delay_time: 3000,
+    reload_delay_time: 500,
   };
 
   function setupSetting() {

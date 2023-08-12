@@ -222,8 +222,10 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     return new_task.join('');
   }
 
+  let afterRefresh = false;
   let lastUrls = null;
-  function on_task_ready(i = 500) {
+  function on_task_ready(settings, i = 500) {
+    let cnt = 0;
     return new Promise((resolve) => {
       let checking = false;
       const check_interval = setInterval(async () => {
@@ -231,6 +233,13 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           return;
         }
         checking = true;
+
+        // Wait for delay reload time
+        cnt += 1;
+        if (settings.reload_delay_time / i > cnt && afterRefresh) {
+          checking = false;
+          return;
+        }
 
         let task = await get_task();
         if (!task) {
@@ -320,6 +329,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         clearInterval(check_interval);
         checking = false;
+        afterRefresh = false;
         return resolve({
           task,
           type,
@@ -340,6 +350,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
   async function refresh() {
     try {
+      afterRefresh = true;
       simulateMouseClick(document.querySelector('.refresh.button'));
       await Time.sleep(250);
     } catch (e) {
@@ -370,9 +381,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       await Time.sleep(500);
     }
 
-    const refreshButton = document.querySelector('.refresh.button');
-
-    const { task, type, cells, urls } = await on_task_ready();
+    const { task, type, cells, urls } = await on_task_ready(settings);
 
     const featSession = await ort.InferenceSession.create(
       chrome.runtime.getURL('models/mobilenetv3.ort')
@@ -396,8 +405,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
-        if (refreshButton.isConnected) await refresh();
-        return;
+        return await refresh();
       }
 
       const classifierSession = await ort.InferenceSession.create(modelURL);
@@ -462,8 +470,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         if (fetchModel.status !== 200) {
           console.log('error getting model', fetchModel, label);
-          if (refreshButton.isConnected) await refresh();
-          return;
+          return await refresh();
         }
 
         const classifierSession = await ort.InferenceSession.create(modelURL);
@@ -499,8 +506,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
-        if (refreshButton.isConnected) await refresh();
-        return;
+        return await refresh();
       }
 
       const session = await ort.InferenceSession.create(modelURL);
@@ -510,8 +516,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const detConfig = await fetchConfig.json();
 
       if (!detConfig.includes(label)) {
-        if (refreshButton.isConnected) await refresh();
-        return;
+        return await refresh();
       }
 
       const cellWidth = cells[0].getBoundingClientRect().width;
@@ -583,9 +588,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         await Time.sleep(settings.solve_delay_time);
         return submit();
       }
-      if (refreshButton.isConnected) await refresh();
+      return await refresh();
     } else {
-      if (refreshButton.isConnected) await refresh();
+      return await refresh();
     }
   }
 
@@ -603,6 +608,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         auto_solve: true,
         click_delay_time: 300,
         solve_delay_time: 3000,
+        reload_delay_time: 500,
       };
       await chrome.storage.local.set(settings);
     }
