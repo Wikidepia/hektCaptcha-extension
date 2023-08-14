@@ -321,7 +321,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         }
 
         const currentUrls = JSON.stringify(urls);
-        if (lastUrls === currentUrls && type !== 'BOUNDING_BOX') {
+        if (lastUrls === currentUrls) {
           checking = false;
           return;
         }
@@ -587,15 +587,16 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         ];
 
         // Get middle coordinate of result
-        let middleX = (x2 + x3) / 2
-        let middleY = (y2 + y3) / 2
+        let middleX = (x2 + x3) / 2;
+        let middleY = (y2 + y3) / 2;
 
         // Add offset to middle coordinate
-        middleX += (cellWidth - cropWidth)
-        middleY += (cellHeight - cropHeight)
+        middleX += cellWidth - cropWidth;
+        middleY += cellHeight - cropHeight;
 
         simulateMouseClick(cells[0], middleX, middleY);
         await Time.sleep(settings.solve_delay_time);
+        lastUrls = JSON.stringify([cells[0].toDataURL('image/jpeg')]);
         return submit();
       }
       return await refresh();
