@@ -21,6 +21,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "@jimp/plugin-crop": "^0.22.10",
     "assert": "^2.0.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",

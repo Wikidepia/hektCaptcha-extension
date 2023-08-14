@@ -531,6 +531,12 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const image = await Jimp.read(Buffer.from(url, 'base64'));
       image.rgba(false);
 
+      // Resize to cell and autocrop
+      image.resize(cellWidth, cellHeight, Jimp.RESIZE_BILINEAR); // TODO: skip resize, use scaling factor
+      image.autocrop({ cropOnlyFrames: false, cropSymmetric: false });
+      const cropWidth = image.getWidth();
+      const cropHeight = image.getHeight();
+
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
@@ -570,7 +576,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         const [x1, y1, w1, h1] = scaleBoxes(
           [x, y, w, h],
-          [cellWidth, cellHeight],
+          [cropWidth, cropHeight],
           [640, 640]
         );
         const [x2, y2, x3, y3] = [
@@ -581,8 +587,12 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         ];
 
         // Get middle coordinate of result
-        const middleX = (x2 + x3) / 2;
-        const middleY = (y2 + y3) / 2;
+        let middleX = (x2 + x3) / 2
+        let middleY = (y2 + y3) / 2
+
+        // Add offset to middle coordinate
+        middleX += (cellWidth - cropWidth)
+        middleY += (cellHeight - cropHeight)
 
         simulateMouseClick(cells[0], middleX, middleY);
         await Time.sleep(settings.solve_delay_time);
