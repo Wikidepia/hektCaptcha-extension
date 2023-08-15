@@ -19,16 +19,25 @@ import './popup.css';
     reload_delay_time: 500,
   };
 
+  // Add change listener to settings
+  async function handleSettingChange(element) {
+    var value = element.classList.contains('settings_toggle')
+      ? element.classList.contains('off')
+      : parseInt(element.value);
+
+    await chrome.storage.local.set({ [element.dataset.settings]: value });
+    if (element.classList.contains('settings_toggle')) {
+      element.classList.remove('on', 'off');
+      element.classList.add(value ? 'on' : 'off');
+    }
+  }
+
   function setupSetting() {
     // Restore settings
-    chrome.storage.local.get(null, async (e) => {
-      const toggleElements = Array.from(
-        document.getElementsByClassName('settings_toggle')
-      );
-      const textElements = Array.from(
-        document.getElementsByClassName('settings_text')
-      );
+    const toggleElements = document.getElementsByClassName('settings_toggle');
+    const textElements = document.getElementsByClassName('settings_text');
 
+    chrome.storage.local.get(null, async (e) => {
       for (const key of Object.keys(settingsDefault)) {
         if (e[key] === undefined) {
           await chrome.storage.local.set({ [key]: settingsDefault[key] });
@@ -36,37 +45,17 @@ import './popup.css';
         }
       }
 
-      for (let i = 0; i < toggleElements.length; i++) {
-        const toggle = toggleElements[i];
-        const text = textElements[i];
-
-        toggle.classList.remove('on', 'off');
-        toggle.classList.add(e[toggle.dataset.settings] ? 'on' : 'off');
-        text.value = e[text.dataset.settings];
-      }
-    });
-
-    // Add change listener to settings
-    const handleSettingChange = async (element) => {
-      var value = element.classList.contains('settings_toggle')
-        ? element.classList.contains('off')
-        : element.value;
-      await chrome.storage.local.set({ [element.dataset.settings]: value });
-      if (element.classList.contains('settings_toggle')) {
+      for (const element of toggleElements) {
         element.classList.remove('on', 'off');
-        element.classList.add(value ? 'on' : 'off');
-      }
-    };
-
-    for (const element of document.querySelectorAll(
-      `.settings_toggle, .settings_text`
-    )) {
-      if (element.classList.contains('settings_toggle')) {
+        element.classList.add(e[element.dataset.settings] ? 'on' : 'off');
         element.addEventListener('click', () => handleSettingChange(element));
-      } else if (element.classList.contains('settings_text')) {
+      }
+
+      for (const element of textElements) {
+        element.value = e[element.dataset.settings];
         element.addEventListener('input', () => handleSettingChange(element));
       }
-    }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', setupSetting);
