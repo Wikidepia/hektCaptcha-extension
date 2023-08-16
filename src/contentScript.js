@@ -12,6 +12,7 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 import Jimp from 'jimp';
+import * as popup from './popup';
 const ort = require('onnxruntime-web');
 
 // Modify ort wasm path
@@ -605,6 +606,19 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
   }
 
+  // Restore default setting if not exist
+  async function restoreSetting() {
+    let settings = await chrome.storage.local.get(null);
+    // If settings is empty, set default settings
+    for (const key in popup.settingsDefault) {
+      if (settings[key] === undefined) {
+        settings[key] = popup.settingsDefault[key];
+      }
+    }
+    await chrome.storage.local.set(settings);
+  }
+  await restoreSetting();
+
   while (true) {
     await Time.sleep(1000);
     if (!chrome.runtime?.id) {
@@ -612,18 +626,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
 
     let settings = await chrome.storage.local.get(null);
-    // If settings is empty, set default settings
-    if (Object.keys(settings).length === 0) {
-      settings = {
-        auto_open: true,
-        auto_solve: true,
-        click_delay_time: 300,
-        solve_delay_time: 3000,
-        reload_delay_time: 500,
-      };
-      await chrome.storage.local.set(settings);
-    }
-
     if (is_widget_frame() && settings.auto_open) {
       await on_widget_frame();
     } else if (is_image_frame() && settings.auto_solve) {
