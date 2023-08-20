@@ -494,6 +494,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // Get label for image
       const label = task
         .replace('Please click on the', '')
+        .replace('Please click the', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
         .replace(/'/g, '')
