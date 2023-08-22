@@ -465,7 +465,10 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
       const outputs = [];
       for (let i = 0; i < cells.length; i++) {
-        const label = cells[i].querySelector('.answer-text').textContent;
+        const label = cells[i]
+          .querySelector('.answer-text')
+          .textContent.replace(/\s+/g, '_')
+          .toLowerCase();
         const modelURL = `https://hekt.akmal.dev/${label}.ort`;
         const fetchModel = await fetch(modelURL, { method: 'HEAD' });
 
