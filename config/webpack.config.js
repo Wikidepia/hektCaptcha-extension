@@ -15,10 +15,7 @@ const config = (env, argv) =>
       popup: PATHS.src + '/popup.js',
       setup: PATHS.src + '/setup.js',
       background: PATHS.src + '/background.js',
-      contentScript: PATHS.src + '/contentScript.js',
-    },
-    optimization: {
-      minimize: argv.mode === 'production',
+      hcaptcha: PATHS.src + '/hcaptcha.js',
       minimizer: [
         new TerserPlugin({
           terserOptions: {
