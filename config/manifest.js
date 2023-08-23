@@ -7,8 +7,8 @@ const { validate } = require('schema-utils');
 const fs = require('fs');
 
 const PATHS = require('./paths');
-const manifest = require('../public/manifest.json');
-const manifestFirefoxExtra = require('../public/manifest.firefox.json');
+const manifestChrome = require('../public/manifest.json');
+const manifestFirefox = require('../public/manifest.firefox.json');
 
 // schema for options object
 const schema = {
@@ -30,30 +30,11 @@ class ManifestPlugin {
   apply() {
     const distManifestFile = path.resolve(PATHS.build, 'manifest.json');
 
-    // Add missing manifest elements
-    if (this.options.browser.toLowerCase() === 'firefox') {
-      mergeObjects(manifest, manifestFirefoxExtra);
-    }
-
-    let result = JSON.stringify(manifest, null, 2);
-
     fs.mkdirSync(PATHS.build, { recursive: true });
-    fs.writeFileSync(distManifestFile, result);
-  }
-}
-
-function mergeObjects(object1, object2) {
-  for (const key in object2) {
-    if (key in object1) {
-      if (Array.isArray(object1[key])) {
-        object1[key] = object1[key].concat(object2[key]);
-      } else if (typeof object1[key] == 'object') {
-        mergeObjects(object1[key], object2[key]);
-      } else {
-        object1[key] = object2[key];
-      }
-    } else {
-      object1[key] = object2[key];
+    if (this.options.browser.toLowerCase() === 'chrome') {
+      fs.writeFileSync(distManifestFile, JSON.stringify(manifestChrome));
+    } else if (this.options.browser.toLowerCase() === 'firefox') {
+      fs.writeFileSync(distManifestFile, JSON.stringify(manifestFirefox));
     }
   }
 }
