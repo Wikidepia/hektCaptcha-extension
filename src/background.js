@@ -22,6 +22,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       await chrome.storage.local.set({ [key]: value });
     }
   }
+
+  // Open setup page on install (for firefox)
+  const isMozilla = chrome.runtime.getURL('').startsWith('moz');
+  if (isMozilla && details.reason === 'install') {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('setup.html'),
+    });
+  }
 });
 
 const kvStorage = {};
