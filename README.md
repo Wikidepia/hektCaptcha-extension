@@ -13,6 +13,10 @@ Automatically solve hCaptcha using AI. Locally, with Chrome extension.
 
 Download from [Chrome Web Store](https://chrome.google.com/webstore/detail/hektcaptcha-hcaptcha-solv/bpfdbfnkjelhloljelooneehdalcmljb).
 
+**Firefox Add-ons:**
+
+Download from [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/hektcaptcha/).
+
 **Manual Installation:**
 
 0. Go to [Releases](https://github.com/Wikidepia/hektCaptcha-extension/releases)
