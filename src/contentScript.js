@@ -399,7 +399,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       }
 
       const modelBuffer = await fetchModel.arrayBuffer();
-      const classifierSession = await ort.InferenceSession.create(modelBuffer);
+      const classifierSession = await ort.InferenceSession.create(Buffer.from(modelBuffer));
 
       // Solve task
       for (let i = 0; i < urls.length; i++) {
@@ -469,7 +469,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         const modelBuffer = await fetchModel.arrayBuffer();
         const classifierSession = await ort.InferenceSession.create(
-          modelBuffer
+          Buffer.from(modelBuffer)
         );
         const classifierOutputs = await classifierSession.run({ input: feats });
         const output = classifierOutputs[classifierSession.outputNames[0]].data;
@@ -508,7 +508,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       }
 
       const modelBuffer = await fetchModel.arrayBuffer();
-      const session = await ort.InferenceSession.create(modelBuffer);
+      const session = await ort.InferenceSession.create(Buffer.from(modelBuffer));
       const nmsSession = await ort.InferenceSession.create(
         chrome.runtime.getURL('models/nms.ort')
       );
