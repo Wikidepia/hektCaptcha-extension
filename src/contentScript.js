@@ -12,7 +12,7 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 import Jimp from 'jimp';
-import * as popup from './popup';
+import { Time } from './utils';
 const ort = require('onnxruntime-web');
 
 // Modify ort wasm path
@@ -26,17 +26,6 @@ ort.env.wasm.wasmPaths = {
     'dist/ort-wasm-simd-threaded.wasm'
   ),
 };
-
-class Time {
-  static sleep(i = 1000) {
-    return new Promise((resolve) => setTimeout(resolve, i));
-  }
-
-  static async random_sleep(min, max) {
-    const duration = Math.floor(Math.random() * (max - min) + min);
-    return await Time.sleep(duration);
-  }
-}
 
 async function letterboxImage(image, size) {
   const iw = image.bitmap.width;
