@@ -23,9 +23,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
   }
 
-  // Open setup page on install (for firefox)
+  // Open setup page, if mozilla and permission is not granted
   const isMozilla = chrome.runtime.getURL('').startsWith('moz');
-  if (isMozilla && details.reason === 'install') {
+  const permissionGranted = await chrome.permissions.contains({
+    origins: ['*://hekt.akmal.dev/*', '*://*.hcaptcha.com/captcha/*'],
+  });
+
+  if (isMozilla && !permissionGranted) {
     chrome.tabs.create({
       url: chrome.runtime.getURL('setup.html'),
     });
