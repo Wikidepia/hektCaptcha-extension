@@ -391,14 +391,15 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .toLowerCase();
 
       const modelURL = `https://hekt.akmal.dev/${label}.ort`;
-      const fetchModel = await fetch(modelURL, { method: 'HEAD' });
+      const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
         return await refresh();
       }
 
-      const classifierSession = await ort.InferenceSession.create(modelURL);
+      const modelBuffer = await fetchModel.arrayBuffer();
+      const classifierSession = await ort.InferenceSession.create(modelBuffer);
 
       // Solve task
       for (let i = 0; i < urls.length; i++) {
@@ -459,14 +460,17 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           .textContent.replace(/\s+/g, '_')
           .toLowerCase();
         const modelURL = `https://hekt.akmal.dev/${label}.ort`;
-        const fetchModel = await fetch(modelURL, { method: 'HEAD' });
+        const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
 
         if (fetchModel.status !== 200) {
           console.log('error getting model', fetchModel, label);
           return await refresh();
         }
 
-        const classifierSession = await ort.InferenceSession.create(modelURL);
+        const modelBuffer = await fetchModel.arrayBuffer();
+        const classifierSession = await ort.InferenceSession.create(
+          modelBuffer
+        );
         const classifierOutputs = await classifierSession.run({ input: feats });
         const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
@@ -495,15 +499,16 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
       const modelURL = `https://hekt.akmal.dev/detector.ort`;
       const configURL = `https://hekt.akmal.dev/detector.json`;
-      const fetchModel = await fetch(modelURL, { method: 'HEAD' });
-      const fetchConfig = await fetch(configURL);
+      const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
+      const fetchConfig = await fetch(configURL, { cache: 'no-cache' });
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
         return await refresh();
       }
 
-      const session = await ort.InferenceSession.create(modelURL);
+      const modelBuffer = await fetchModel.arrayBuffer();
+      const session = await ort.InferenceSession.create(modelBuffer);
       const nmsSession = await ort.InferenceSession.create(
         chrome.runtime.getURL('models/nms.ort')
       );
