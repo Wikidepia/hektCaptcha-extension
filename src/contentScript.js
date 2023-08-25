@@ -610,19 +610,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
   }
 
-  // Restore default setting if not exist
-  async function restoreSetting() {
-    let settings = await chrome.storage.local.get(null);
-    // If settings is empty, set default settings
-    for (const key in popup.settingsDefault) {
-      if (settings[key] === undefined) {
-        settings[key] = popup.settingsDefault[key];
-      }
-    }
-    await chrome.storage.local.set(settings);
-  }
-  await restoreSetting();
-
   while (true) {
     await Time.sleep(1000);
     if (!chrome.runtime?.id) {

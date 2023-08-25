@@ -13,6 +13,9 @@
     "default_title": "hektCaptcha",
     "default_popup": "popup.html"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "permissions": ["storage"],
   "web_accessible_resources": [
     {
