@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "transform": {
+          "queryTransform": {
+            "addOrReplaceParams": [
+              {
+                "key": "hl",
+                "value": "en-US"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "condition": {
+      "regexFilter": "^https://[^\\.]*\\.(google\\.com|recaptcha\\.net)/recaptcha",
+      "resourceTypes": ["sub_frame"]
+    }
+  }
+]
