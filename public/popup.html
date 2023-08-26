@@ -12,7 +12,7 @@
 </head>
 
 <body>
-  <div class="tab" data-tab="hcaptcha">
+  <div>
     <div class="header">
       <div class="header_label_container">
         <div class="header_label">hektCaptcha</div>
@@ -37,151 +37,266 @@
         "
       >
         <div class="scrolling_container">
-          <div class="settings_item_container">
-            <div class="settings_item">
-              <div class="bbflex">
-                <div class="bbflex">
-                  <svg width="16" height="16" fill="#ffffff">
-                    <path
-                      d="M8 0A8 8 0 11.582 11.001h2.221a6 6 0 100-6L.582 4.999A8.003 8.003 0 018 0zM7 5l4 3-4 3-.001-2H0V7h6.999L7 5z"
-                    ></path>
-                  </svg>
-                  <div class="settings_item_label bbflex">Auto-Open</div>
-                </div>
-                <div class="bbflex">
-                  <div class="settings_toggle on" data-settings="auto_open">
-                    <div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="settings_description_container bbflex">
-              <div class="settings_description">
-                Automatically opens captcha challenges.
-              </div>
-            </div>
-          </div>
-
-          <div class="settings_item_container">
-            <div class="settings_item">
-              <div class="bbflex">
-                <div class="bbflex">
-                  <svg width="16" height="16" fill="#ffffff">
-                    <path
-                      d="M13.336 9.007l.044.085 2.58 6.193a.516.516 0 01-.91.48l-.043-.083-.728-1.747h-2.753l-.727 1.747a.516.516 0 01-.586.306l-.089-.028a.516.516 0 01-.306-.586l.028-.089 2.58-6.193a.517.517 0 01.91-.085zM4.128 1.728V4.13a5.161 5.161 0 004.13 9.187v2.095A7.226 7.226 0 014.128 1.73zm8.775 8.904l-.947 2.271h1.893l-.946-2.27zM8.258 0v8.258H6.193V0h2.065zm2.065 1.728a7.233 7.233 0 014.055 5.498h-2.094a5.162 5.162 0 00-1.962-3.097V1.728z"
-                    ></path>
-                  </svg>
-                  <div class="settings_item_label bbflex">Auto-Solve</div>
-                </div>
-                <div class="bbflex">
-                  <div class="settings_toggle on" data-settings="auto_solve">
-                    <div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="settings_description_container bbflex">
-              <div class="settings_description">
-                Automatically solves captcha challenges.
-              </div>
-            </div>
-          </div>
-
-          <div class="settings_item_container">
-            <div class="settings_item">
-              <div class="bbflex">
-                <div class="bbflex">
-                  <svg width="16" height="16" fill="#ffffff">
-                    <path
-                      d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
-                    ></path>
-                  </svg>
-                  <div class="settings_item_label bbflex">
-                    Click Delay Timer
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="settings_description_container bbflex">
-              <div class="settings_description">
-                Milliseconds to delay click images.
-              </div>
-              <input
-                type="number"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Delay"
-                value="300"
-                class="settings_text text_input text_right small"
-                data-settings="click_delay_time"
+          <div class="tab-group">
+            <button class="tab-button" data-button="hcaptcha">
+              <img
+                class="tab-logo"
+                src="https://www.google.com/s2/favicons?sz=64&domain=hcaptcha.com"
+                alt="hcaptcha logo"
               />
-            </div>
+              hCaptcha
+            </button>
+            <button class="tab-button" data-button="recaptcha">
+              <img
+                class="tab-logo"
+                src="https://www.gstatic.com/recaptcha/api2/logo_48.png"
+                alt="reCAPTCHA logo"
+              />
+              reCAPTCHA
+            </button>
           </div>
-
-          <div class="settings_item_container">
-            <div class="settings_item">
-              <div class="bbflex">
+          <!-- hCaptcha -->
+          <div class="tab-content" data-tab="hcaptcha">
+            <div class="settings_item_container">
+              <div class="settings_item">
                 <div class="bbflex">
-                  <svg width="16" height="16" fill="#ffffff">
-                    <path
-                      d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
-                    ></path>
-                  </svg>
-                  <div class="settings_item_label bbflex">
-                    Solve Delay Timer
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M8 0A8 8 0 11.582 11.001h2.221a6 6 0 100-6L.582 4.999A8.003 8.003 0 018 0zM7 5l4 3-4 3-.001-2H0V7h6.999L7 5z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">Auto-Open</div>
+                  </div>
+                  <div class="bbflex">
+                    <div
+                      class="settings_toggle on"
+                      data-settings="hcaptcha_auto_open"
+                    >
+                      <div></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="settings_description_container bbflex">
-              <div class="settings_description">
-                Milliseconds to delay solving.
-              </div>
-              <input
-                type="number"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Delay"
-                value="3000"
-                class="settings_text text_input text_right small"
-                data-settings="solve_delay_time"
-              />
-            </div>
-          </div>
-
-          <div class="settings_item_container">
-            <div class="settings_item">
-              <div class="bbflex">
-                <div class="bbflex">
-                  <svg width="16" height="16" fill="#ffffff">
-                    <path
-                      d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
-                    ></path>
-                  </svg>
-                  <div class="settings_item_label bbflex">
-                    Reload Delay Timer
-                  </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Automatically opens hCaptcha challenges.
                 </div>
               </div>
             </div>
-            <div class="settings_description_container bbflex">
-              <div class="settings_description">
-                Milliseconds to delay reload captcha.
+
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M13.336 9.007l.044.085 2.58 6.193a.516.516 0 01-.91.48l-.043-.083-.728-1.747h-2.753l-.727 1.747a.516.516 0 01-.586.306l-.089-.028a.516.516 0 01-.306-.586l.028-.089 2.58-6.193a.517.517 0 01.91-.085zM4.128 1.728V4.13a5.161 5.161 0 004.13 9.187v2.095A7.226 7.226 0 014.128 1.73zm8.775 8.904l-.947 2.271h1.893l-.946-2.27zM8.258 0v8.258H6.193V0h2.065zm2.065 1.728a7.233 7.233 0 014.055 5.498h-2.094a5.162 5.162 0 00-1.962-3.097V1.728z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">Auto-Solve</div>
+                  </div>
+                  <div class="bbflex">
+                    <div
+                      class="settings_toggle on"
+                      data-settings="hcaptcha_auto_solve"
+                    >
+                      <div></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <input
-                type="number"
-                autocomplete="off"
-                spellcheck="false"
-                placeholder="Delay"
-                value="500"
-                class="settings_text text_input text_right small"
-                data-settings="reload_delay_time"
-              />
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Automatically solves hCaptcha challenges.
+                </div>
+              </div>
+            </div>
+
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">
+                      Click Delay Timer
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Milliseconds to delay click images.
+                </div>
+                <input
+                  type="number"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Delay"
+                  value="300"
+                  class="settings_text text_input text_right small"
+                  data-settings="hcaptcha_click_delay_time"
+                />
+              </div>
+            </div>
+
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">
+                      Solve Delay Timer
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Milliseconds to delay solving.
+                </div>
+                <input
+                  type="number"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Delay"
+                  value="3000"
+                  class="settings_text text_input text_right small"
+                  data-settings="hcaptcha_solve_delay_time"
+                />
+              </div>
             </div>
           </div>
+          <!-- reCAPTCHA -->
+          <div class="tab-content" data-tab="recaptcha">
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M8 0A8 8 0 11.582 11.001h2.221a6 6 0 100-6L.582 4.999A8.003 8.003 0 018 0zM7 5l4 3-4 3-.001-2H0V7h6.999L7 5z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">Auto-Open</div>
+                  </div>
+                  <div class="bbflex">
+                    <div
+                      class="settings_toggle on"
+                      data-settings="recaptcha_auto_open"
+                    >
+                      <div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Automatically opens reCAPTCHA challenges.
+                </div>
+              </div>
+            </div>
 
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M13.336 9.007l.044.085 2.58 6.193a.516.516 0 01-.91.48l-.043-.083-.728-1.747h-2.753l-.727 1.747a.516.516 0 01-.586.306l-.089-.028a.516.516 0 01-.306-.586l.028-.089 2.58-6.193a.517.517 0 01.91-.085zM4.128 1.728V4.13a5.161 5.161 0 004.13 9.187v2.095A7.226 7.226 0 014.128 1.73zm8.775 8.904l-.947 2.271h1.893l-.946-2.27zM8.258 0v8.258H6.193V0h2.065zm2.065 1.728a7.233 7.233 0 014.055 5.498h-2.094a5.162 5.162 0 00-1.962-3.097V1.728z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">Auto-Solve</div>
+                  </div>
+                  <div class="bbflex">
+                    <div
+                      class="settings_toggle on"
+                      data-settings="recaptcha_auto_solve"
+                    >
+                      <div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Automatically solves reCAPTCHA challenges.
+                </div>
+              </div>
+            </div>
+
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">
+                      Click Delay Timer
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Milliseconds to delay click images.
+                </div>
+                <input
+                  type="number"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Delay"
+                  value="300"
+                  class="settings_text text_input text_right small"
+                  data-settings="recaptcha_click_delay_time"
+                />
+              </div>
+            </div>
+
+            <div class="settings_item_container">
+              <div class="settings_item">
+                <div class="bbflex">
+                  <div class="bbflex">
+                    <svg width="16" height="16" fill="#ffffff">
+                      <path
+                        d="M16 8a8 8 0 01-8 8v-1a7 7 0 007-7h1zm-4.667 3.536l.667.707C10.976 13.33 9.562 14 8 14c-1.562 0-2.976-.671-4-1.757l.667-.707C5.52 12.441 6.698 13 8 13s2.48-.56 3.333-1.464zM7 4.5a.5.5 0 01.492.41L7.5 5v3.5H10a.5.5 0 01.492.41L10.5 9a.5.5 0 01-.41.492L10 9.5H6.5V5a.5.5 0 01.5-.5zM8 0v1a7 7 0 00-7 7H0a8 8 0 018-8zm0 2c1.562 0 2.977.672 4 1.758l-.666.707C10.48 3.56 9.302 3 8 3s-2.48.56-3.334 1.465L4 3.758C5.023 2.672 6.438 2 8 2z"
+                      ></path>
+                    </svg>
+                    <div class="settings_item_label bbflex">
+                      Solve Delay Timer
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings_description_container bbflex">
+                <div class="settings_description">
+                  Milliseconds to delay solving.
+                </div>
+                <input
+                  type="number"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Delay"
+                  value="1000"
+                  class="settings_text text_input text_right small"
+                  data-settings="recaptcha_solve_delay_time"
+                />
+              </div>
+            </div>
+          </div>
           <div class="footer">
-            <div>Version 0.2.17</div>
+            <div>Version 0.3.0</div>
             <div>Credits to NopeCHA</div>
           </div>
         </div>

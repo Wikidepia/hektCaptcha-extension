@@ -1,7 +1,13 @@
 (function () {
   function setup() {
     browser.permissions.request({
-      origins: ['*://hekt.akmal.dev/*', '*://*.hcaptcha.com/captcha/*'],
+      origins: [
+        '<all_urls>',
+        '*://hekt-static.akmal.dev/*',
+        '*://*.hcaptcha.com/captcha/*',
+        '*://*.google.com/recaptcha/*',
+        '*://*.recaptcha.net/recaptcha/*',
+      ],
     });
   }
   document.getElementById('setup-button').addEventListener('click', setup);

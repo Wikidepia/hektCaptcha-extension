@@ -391,7 +391,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const modelURL = `https://hekt-static.akmal.dev/classify/${label}.ort`
+      const modelURL = `https://hekt-static.akmal.dev/classify/${label}.ort`;
       const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
@@ -515,7 +515,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         Buffer.from(modelBuffer)
       );
       const nmsSession = await ort.InferenceSession.create(
-        chrome.runtime.getURL('models/nms.ort')
+        chrome.runtime.getURL('models/nms-yolov5-det.ort')
       );
 
       const cellWidth = cells[0].getBoundingClientRect().width;

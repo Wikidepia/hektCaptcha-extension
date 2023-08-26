@@ -16,6 +16,8 @@ const config = (env, argv) =>
       setup: PATHS.src + '/setup.js',
       background: PATHS.src + '/background.js',
       hcaptcha: PATHS.src + '/hcaptcha.js',
+      recaptcha: PATHS.src + '/recaptcha.js',
+      'recaptcha-visibility': PATHS.src + '/recaptcha-visibility.js',
     },
     resolve: {
       fallback: {
