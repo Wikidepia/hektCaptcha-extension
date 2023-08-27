@@ -13,8 +13,8 @@ const defaultSettings = {
   hcaptcha_solve_delay_time: 3000,
   hcaptcha_reload_delay_time: 0,
 
-  recaptcha_auto_open: true,
-  recaptcha_auto_solve: true,
+  recaptcha_auto_open: false,
+  recaptcha_auto_solve: false,
   recaptcha_click_delay_time: 300,
   recaptcha_solve_delay_time: 1000,
 };
