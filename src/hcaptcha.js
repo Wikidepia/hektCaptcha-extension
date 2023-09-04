@@ -490,19 +490,10 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       }
     } else if (type == 'BOUNDING_BOX') {
       // Get label for image
-      const label = task
-        .replace('Please click on the', '')
-        .replace('Please click the', '')
-        .trim()
-        .replace(/^(a|an)\s+/i, '')
-        .replace(/'/g, '')
-        .replace(/\s+/g, '_')
-        .toLowerCase();
+      const label = task.trim().replace(/\s+/g, '_').toLowerCase();
 
-      const modelURL = `https://hekt.akmal.dev/detector.ort`;
-      const configURL = `https://hekt.akmal.dev/detector.json`;
+      const modelURL = `https://hekt.akmal.dev/${label}-yolov5n.ort`;
       const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
-      const fetchConfig = await fetch(configURL, { cache: 'no-cache' });
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
@@ -516,11 +507,6 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const nmsSession = await ort.InferenceSession.create(
         chrome.runtime.getURL('models/nms.ort')
       );
-      const detConfig = await fetchConfig.json();
-
-      if (!detConfig.includes(label)) {
-        return await refresh();
-      }
 
       const cellWidth = cells[0].getBoundingClientRect().width;
       const cellHeight = cells[0].getBoundingClientRect().height;
@@ -543,7 +529,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
-        new Float32Array([20, 0.25, 0.1])
+        new Float32Array([1, 0.25, 0.1])
       );
       const inputImage = await letterboxImage(image, [640, 640]);
       const inputTensor = imageDataToTensor(
@@ -570,13 +556,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           (idx + 1) * output0.dims[2]
         );
 
-        // Get max score and class
-        const scores = data.slice(5);
-        const detIdx = scores.indexOf(Math.max(...scores));
-        if (detConfig[detIdx] !== label) continue;
-
         const [x, y, w, h] = data.slice(0, 4);
-
         const [x1, y1, w1, h1] = scaleBoxes(
           [x, y, w, h],
           [cropWidth, cropHeight],
