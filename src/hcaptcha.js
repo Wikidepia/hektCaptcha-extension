@@ -490,7 +490,16 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       }
     } else if (type == 'BOUNDING_BOX') {
       // Get label for image
-      const label = task.trim().replace(/\s+/g, '_').toLowerCase();
+      const label = task
+        .replace('Please click on the thumbnail that is', '')
+        .replace('Please click the center of the')
+        .replace('Please click on the', '')
+        .replace('Please click the', '')
+        .trim()
+        .replace(/^(a|an)\s+/i, '')
+        .replace(/'/g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
 
       const modelURL = `https://hekt.akmal.dev/${label}-yolov5n.ort`;
       const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
