@@ -43,6 +43,17 @@ const config = (env, argv) =>
         browser: env.browser,
       }),
     ],
+    optimization: {
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              unused: false,
+            },
+          },
+        }),
+      ],
+    },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });
 
