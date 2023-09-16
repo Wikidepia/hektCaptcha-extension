@@ -392,7 +392,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .toLowerCase();
 
       const modelURL = `https://hekt.akmal.dev/${label}.ort`;
-      const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
+      const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
@@ -463,7 +463,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           .textContent.replace(/\s+/g, '_')
           .toLowerCase();
         const modelURL = `https://hekt.akmal.dev/${label}.ort`;
-        const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
+        const fetchModel = await fetch(modelURL);
 
         if (fetchModel.status !== 200) {
           console.log('error getting model', fetchModel, label);
@@ -503,7 +503,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .toLowerCase();
 
       const modelURL = `https://hekt.akmal.dev/${label}-yolov5n.ort`;
-      const fetchModel = await fetch(modelURL, { cache: 'no-cache' });
+      const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
         console.log('error getting model', fetchModel, label);
