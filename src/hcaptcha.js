@@ -63,7 +63,7 @@ function imageDataToTensor(image, dims, normalize = true) {
     blueArray.push(imageBufferData[i + 2]);
   }
 
-  // 3. Concatenate RGB to transpose [224, 224, 3] -> [3, 224, 224] to a number array
+  // 3. Concatenate RGB to transpose [256, 256, 3] -> [3, 256, 256] to a number array
   const transposedData = redArray.concat(greenArray, blueArray);
 
   // 4. Convert to float32 and normalize to 1
@@ -374,7 +374,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     const { task, type, cells, urls } = await on_task_ready(settings);
 
     const featSession = await ort.InferenceSession.create(
-      chrome.runtime.getURL('models/mobilenetv3.ort')
+      chrome.runtime.getURL('models/mobileone-s0.ort')
     );
 
     // Usual 3x3 grid, classify
@@ -391,7 +391,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const modelURL = `https://hekt.akmal.dev/${label}.ort`;
+      const modelURL = `https://hekt.akmal.dev/v2/${label}.ort`
       const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
@@ -412,11 +412,11 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         // Read image from URL
         const image = await Jimp.read(urls[i]);
 
-        // Resize image to 224x224 with bilinear interpolation
-        image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+        // Resize image to 256x256 with bilinear interpolation
+        image.resize(256, 256, Jimp.RESIZE_BILINEAR);
 
         // Convert image data to tensor
-        const input = imageDataToTensor(image, [1, 3, 224, 224]);
+        const input = imageDataToTensor(image, [1, 3, 256, 256]);
 
         // Feed input tensor to feature extractor model and run it
         const featOutputs = await featSession.run({ input: input });
@@ -446,11 +446,11 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // Read main image from URL
       const image = await Jimp.read(urls[0]);
 
-      // Resize image to 224x224 with bilinear interpolation
-      image.resize(224, 224, Jimp.RESIZE_BILINEAR);
+      // Resize image to 256x256 with bilinear interpolation
+      image.resize(256, 256, Jimp.RESIZE_BILINEAR);
 
       // Convert image data to tensor
-      const input = imageDataToTensor(image, [1, 3, 224, 224]);
+      const input = imageDataToTensor(image, [1, 3, 256, 256]);
 
       // Feed input tensor to feature extractor model and run it
       const featOutputs = await featSession.run({ input: input });
@@ -462,7 +462,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           .querySelector('.answer-text')
           .textContent.replace(/\s+/g, '_')
           .toLowerCase();
-        const modelURL = `https://hekt.akmal.dev/${label}.ort`;
+        const modelURL = `https://hekt.akmal.dev/v2/${label}.ort`;
         const fetchModel = await fetch(modelURL);
 
         if (fetchModel.status !== 200) {
