@@ -391,7 +391,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const modelURL = `https://hekt.akmal.dev/v2/${label}.ort`
+      const modelURL = `https://hekt-static.akmal.dev/classify/${label}.ort`
       const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
@@ -462,7 +462,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           .querySelector('.answer-text')
           .textContent.replace(/\s+/g, '_')
           .toLowerCase();
-        const modelURL = `https://hekt.akmal.dev/v2/${label}.ort`;
+        const modelURL = `https://hekt-static.akmal.dev/classify/${label}.ort`;
         const fetchModel = await fetch(modelURL);
 
         if (fetchModel.status !== 200) {
