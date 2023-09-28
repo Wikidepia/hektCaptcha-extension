@@ -502,7 +502,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const modelURL = `https://hekt.akmal.dev/${label}-yolov5n.ort`;
+      const modelURL = `https://hekt-static.akmal.dev/bounding_box/${label}.ort`;
       const fetchModel = await fetch(modelURL);
 
       if (fetchModel.status !== 200) {
