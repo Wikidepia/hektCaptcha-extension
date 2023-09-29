@@ -62,7 +62,7 @@ function openPage(buttonElement) {
       }
 
       for (const element of textElements) {
-        element.value = e[element.dataset.settings];
+        element.value = e[element.dataset.settings] || 0;
         element.addEventListener('input', () => handleSettingChange(element));
       }
     });
