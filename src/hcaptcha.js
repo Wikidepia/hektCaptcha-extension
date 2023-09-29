@@ -226,7 +226,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         // Wait for delay reload time
         cnt += 1;
-        if (settings.reload_delay_time / i > cnt && afterRefresh) {
+        if (settings.hcaptcha_reload_delay_time / i > cnt && afterRefresh) {
           checking = false;
           return;
         }
@@ -431,13 +431,13 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
 
         // If argmaxValue is 1, click on cell (if it is not already selected)
         if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
-          await Time.sleep(settings.click_delay_time);
+          await Time.sleep(settings.hcaptcha_click_delay_time);
           simulateMouseClick(cells[i]);
         }
       }
 
       if (cells[0].isConnected) {
-        await Time.sleep(settings.solve_delay_time);
+        await Time.sleep(settings.hcaptcha_solve_delay_time);
         return submit();
       }
     }
@@ -484,9 +484,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       const positiveCell = cells[outputs.indexOf(Math.max(...outputs))];
       // Click highest confidence cell
       if (!is_cell_selected(positiveCell)) {
-        await Time.sleep(settings.solve_delay_time / 2);
+        await Time.sleep(settings.hcaptcha_solve_delay_time / 2);
         simulateMouseClick(positiveCell);
-        await Time.sleep(settings.solve_delay_time / 2);
+        await Time.sleep(settings.hcaptcha_solve_delay_time / 2);
         return submit();
       }
     } else if (type == 'BOUNDING_BOX') {
@@ -588,7 +588,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         middleY += cellHeight - cropHeight;
 
         simulateMouseClick(cells[0], middleX, middleY);
-        await Time.sleep(settings.solve_delay_time);
+        await Time.sleep(settings.hcaptcha_solve_delay_time);
         lastUrls = JSON.stringify([cells[0].toDataURL('image/jpeg')]);
         return submit();
       }
@@ -605,9 +605,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     }
 
     let settings = await chrome.storage.local.get(null);
-    if (is_widget_frame() && settings.auto_open) {
+    if (is_widget_frame() && settings.hcaptcha_auto_open) {
       await on_widget_frame();
-    } else if (is_image_frame() && settings.auto_solve) {
+    } else if (is_image_frame() && settings.hcaptcha_auto_solve) {
       await on_image_frame(settings);
     }
   }
