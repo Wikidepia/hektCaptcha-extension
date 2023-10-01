@@ -13,6 +13,7 @@
 
 import Jimp from 'jimp';
 import { Time } from './utils';
+require('./hacktimer.js');
 const ort = require('onnxruntime-web');
 
 // Modify ort wasm path
