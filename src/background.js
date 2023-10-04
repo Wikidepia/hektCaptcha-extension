@@ -55,46 +55,50 @@ chrome.runtime.onMessage.addListener(function (
   sender,
   sendResponse
 ) {
-  (async () => {
-    if (type === 'KV_SET') {
-      if (label.tab_specific) {
-        label.key = `${sender.tab.id}_${label.key}`;
-      }
-      kvStorage[label.key] = label.value;
-      sendResponse({ status: 'success' });
-    } else if (type === 'KV_GET') {
-      if (label.tab_specific) {
-        label.key = `${sender.tab.id}_${label.key}`;
-      }
-      sendResponse({ status: 'success', value: kvStorage[label.key] });
-    } else if (type === 'HackTimer') {
-      if (label.name === 'setInterval') {
-        fakeIdToId[label.fakeId] = setInterval(function () {
-          triggerTimer(label.name, sender.tab.id, label.fakeId);
-        }, label.time);
-      } else if (label.name === 'clearInterval') {
-        clearInterval(fakeIdToId[label.fakeId]);
-        delete fakeIdToId[label.fakeId];
-      } else if (label.name === 'setTimeout') {
-        fakeIdToId[label.fakeId] = setTimeout(function () {
-          triggerTimer(label.name, sender.tab.id, label.fakeId);
-          delete fakeIdToId[label.fakeId];
-        }, label.time);
-      } else if (label.name === 'clearTimeout') {
-        clearTimeout(fakeIdToId[label.fakeId]);
-        delete fakeIdToId[label.fakeId];
-      }
+  if (type === 'KV_SET') {
+    if (label.tab_specific) {
+      label.key = `${sender.tab.id}_${label.key}`;
     }
-  })();
-  return true;
+    kvStorage[label.key] = label.value;
+    sendResponse({ status: 'success' });
+  } else if (type === 'KV_GET') {
+    if (label.tab_specific) {
+      label.key = `${sender.tab.id}_${label.key}`;
+    }
+    sendResponse({ status: 'success', value: kvStorage[label.key] });
+  } else if (type === 'HackTimer') {
+    if (label.name === 'setInterval') {
+      fakeIdToId[label.fakeId] = setInterval(function () {
+        triggerTimer(label.name, sender, label.fakeId);
+      }, label.time);
+    } else if (label.name === 'clearInterval') {
+      clearInterval(fakeIdToId[label.fakeId]);
+      delete fakeIdToId[label.fakeId];
+    } else if (label.name === 'setTimeout') {
+      fakeIdToId[label.fakeId] = setTimeout(function () {
+        triggerTimer(label.name, sender, label.fakeId);
+        delete fakeIdToId[label.fakeId];
+      }, label.time);
+    } else if (label.name === 'clearTimeout') {
+      clearTimeout(fakeIdToId[label.fakeId]);
+      delete fakeIdToId[label.fakeId];
+    }
+  }
 });
 
-async function triggerTimer(name, tabId, fakeId) {
+async function triggerTimer(name, sender, fakeId) {
   try {
-    await chrome.tabs.sendMessage(tabId, {
-      type: 'HackTimer',
-      label: { fakeId },
-    });
+    await chrome.tabs.sendMessage(
+      sender.tab.id,
+      {
+        type: 'HackTimer',
+        label: { fakeId },
+      },
+      {
+        documentId: sender.documentId,
+        frameId: sender.frameId,
+      }
+    );
   } catch (error) {
     if (name === 'setInterval') clearInterval(fakeIdToId[fakeId]);
     delete fakeIdToId[fakeId];

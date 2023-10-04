@@ -1,21 +1,16 @@
-let fakeIdToCallback = {},
-  lastFakeId = 0,
-  maxFakeId = 0x7fffffff; // 2 ^ 31 - 1, 31 bit, positive values of signed 32 bit integer
-window.fakeIdToCallback = fakeIdToCallback;
+let fakeIdToCallback = {};
 
-function getFakeId() {
-  do {
-    if (lastFakeId === maxFakeId) {
-      lastFakeId = 0;
-    } else {
-      lastFakeId++;
-    }
-  } while (fakeIdToCallback.hasOwnProperty(lastFakeId));
-  return lastFakeId;
+function uuidv4() {
+  return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+    (
+      c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+    ).toString(16)
+  );
 }
 
 window.setInterval = function (callback, time /* , parameters */) {
-  let fakeId = getFakeId();
+  let fakeId = uuidv4();
   fakeIdToCallback[fakeId] = {
     callback: callback,
     parameters: Array.prototype.slice.call(arguments, 2),
@@ -43,7 +38,7 @@ window.clearInterval = function (fakeId) {
   }
 };
 window.setTimeout = function (callback, time /* , parameters */) {
-  let fakeId = getFakeId();
+  let fakeId = uuidv4();
   fakeIdToCallback[fakeId] = {
     callback: callback,
     parameters: Array.prototype.slice.call(arguments, 2),
