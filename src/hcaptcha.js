@@ -539,7 +539,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
-        new Float32Array([1, 0.25, 0.1])
+        new Float32Array([10, 0.25, 0.001])
       );
       const inputImage = await letterboxImage(image, [640, 640]);
       const inputTensor = imageDataToTensor(
@@ -586,6 +586,12 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         // Add offset to middle coordinate
         middleX += cellWidth - cropWidth;
         middleY += cellHeight - cropHeight;
+
+        // Skip if middle coordinate is not in clickable canvas
+        // Approximately 10% of the cell
+        if (middleX < cellWidth * 0.1 || middleY < cellHeight * 0.1) {
+          continue;
+        }
 
         simulateMouseClick(cells[0], middleX, middleY);
         await Time.sleep(settings.hcaptcha_solve_delay_time);
