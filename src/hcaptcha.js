@@ -388,6 +388,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace('Select all', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
+        .replace(/'|\./g, '')
         .replace(/\s+/g, '_')
         .toLowerCase();
 
@@ -498,8 +499,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace('Please click the', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
-        .replace(/'/g, '')
+        .replace(/'|\./g, '')
         .replace(/\s+/g, '_')
+        .trim()
         .toLowerCase();
 
       const modelURL = `https://hekt-static.akmal.dev/bounding_box/${label}.ort`;
