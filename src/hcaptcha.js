@@ -384,6 +384,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace('Please click each image containing', '')
         .replace('Please click on all images containing', '')
         .replace('Please click on all images of', '')
+        .replace('Please click on the', '')
         .replace('Select all images containing', '')
         .replace('Select all', '')
         .trim()
