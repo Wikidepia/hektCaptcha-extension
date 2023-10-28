@@ -96,6 +96,27 @@ function softmax(x) {
   return e_x.map((v) => v / sum_e_x);
 }
 
+async function classifyImage(featSession, classifierSession, url) {
+  // Read image from URL
+  const image = await Jimp.read(url);
+
+  // Resize image to 256x256 with bilinear interpolation
+  image.resize(256, 256, Jimp.RESIZE_BILINEAR);
+
+  // Convert image data to tensor
+  const input = imageDataToTensor(image, [1, 3, 256, 256]);
+
+  // Feed input tensor to feature extractor model and run it
+  const featOutputs = await featSession.run({ input: input });
+  const feats = featOutputs[featSession.outputNames[0]];
+
+  // Feed feats to classifier
+  const classifierOutputs = await classifierSession.run({
+    input: feats,
+  });
+  return classifierOutputs[classifierSession.outputNames[0]].data;
+}
+
 function simulateMouseClick(element, clientX = null, clientY = null) {
   if (clientX === null || clientY === null) {
     const box = element.getBoundingClientRect();
@@ -317,6 +338,15 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         }
         lastUrls = currentUrls;
 
+        // Get specific class based on task
+        const fetchClass = await fetch(
+          `https://hekt-static.akmal.dev/speclass.json`
+        );
+        if (fetchClass.status === 200) {
+          const classJSON = await fetchClass.json();
+          type = classJSON[task] || type;
+        }
+
         clearInterval(check_interval);
         checking = false;
         afterRefresh = false;
@@ -413,24 +443,13 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         if (!cells[i].isConnected) {
           return;
         }
-        // Read image from URL
-        const image = await Jimp.read(urls[i]);
-
-        // Resize image to 256x256 with bilinear interpolation
-        image.resize(256, 256, Jimp.RESIZE_BILINEAR);
-
-        // Convert image data to tensor
-        const input = imageDataToTensor(image, [1, 3, 256, 256]);
-
-        // Feed input tensor to feature extractor model and run it
-        const featOutputs = await featSession.run({ input: input });
-        const feats = featOutputs[featSession.outputNames[0]];
-
-        // Feed feats to classifier
-        const classifierOutputs = await classifierSession.run({ input: feats });
-        const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
         // Find index of maximum value in output array
+        const output = await classifyImage(
+          featSession,
+          classifierSession,
+          urls[i]
+        );
         const argmaxValue = output.indexOf(Math.max(...output));
 
         // If argmaxValue is 1, click on cell (if it is not already selected)
@@ -604,6 +623,80 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         return submit();
       }
       return await refresh();
+    } else if (type == 'NESTED_CLASSIFY') {
+      // Get label for image
+      const label = task
+        .replace('Please click on each image containing', '')
+        .replace('Please click each image containing', '')
+        .replace('Please click on all images containing', '')
+        .replace('Please click on all images of', '')
+        .replace('Please click on the', '')
+        .replace('Select all images containing', '')
+        .replace('Select all', '')
+        .trim()
+        .replace(/^(a|an)\s+/i, '')
+        .replace(/^the\s+/i, '')
+        .replace(/'|\./g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+
+      const rankURL = `https://hekt-static.akmal.dev/ranking.json`;
+      const fetchRank = await fetch(rankURL);
+      if (fetchRank.status !== 200) {
+        console.log('error getting rank', fetchRank, label);
+        return await refresh();
+      }
+
+      const rankJSON = await fetchRank.json();
+      const ranks = rankJSON[label];
+      if (!ranks) {
+        console.log('error getting rank', fetchRank, label);
+        return await refresh();
+      }
+
+      let labelFound = false;
+      for (let i = 0; i < ranks.length; i++) {
+        const rankLabel = ranks[i];
+        const modelURL = `https://hekt-static.akmal.dev/classify/${rankLabel}.ort`;
+        const fetchModel = await fetch(modelURL);
+
+        if (fetchModel.status !== 200) {
+          console.log('error getting model', fetchModel, rankLabel);
+          return await refresh();
+        }
+
+        const modelBuffer = await fetchModel.arrayBuffer();
+        const classifierSession = await ort.InferenceSession.create(
+          Buffer.from(modelBuffer)
+        );
+
+        // Solve task
+        for (let i = 0; i < urls.length; i++) {
+          if (!cells[i].isConnected) {
+            return;
+          }
+
+          // Find index of maximum value in output array
+          const output = await classifyImage(
+            featSession,
+            classifierSession,
+            urls[i]
+          );
+          const argmaxValue = output.indexOf(Math.max(...output));
+
+          // If argmaxValue is 1, click on cell (if it is not already selected)
+          if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
+            labelFound = true;
+            await Time.sleep(settings.hcaptcha_click_delay_time);
+            simulateMouseClick(cells[i]);
+          }
+        }
+
+        if (labelFound) {
+          await Time.sleep(settings.hcaptcha_solve_delay_time);
+          return submit();
+        }
+      }
     } else {
       return await refresh();
     }
