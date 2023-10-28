@@ -381,6 +381,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     if (type == 'CLASSIFY') {
       // Get label for image
       const label = task
+        .replace('Please click on each image containing', '')
         .replace('Please click each image containing', '')
         .replace('Please click on all images containing', '')
         .replace('Please click on all images of', '')
@@ -389,6 +390,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace('Select all', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
+        .replace(/^the\s+/i, '')
         .replace(/'|\./g, '')
         .replace(/\s+/g, '_')
         .toLowerCase();
