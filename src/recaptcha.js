@@ -11,7 +11,7 @@
 // For more information on Content Scripts,
 // See https://developer.chrome.com/extensions/content_scripts
 
-import "jimp";
+import 'jimp';
 import { KVStorage, Time } from './utils.js';
 
 const ort = require('onnxruntime-web');
