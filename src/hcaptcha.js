@@ -640,7 +640,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace(/\s+/g, '_')
         .toLowerCase();
 
-      const rankURL = `https://hekt-static.akmal.dev/ranking.json`;
+      const rankURL = `https://hekt-static.akmal.dev/nestclass.json`;
       const fetchRank = await fetch(rankURL);
       if (fetchRank.status !== 200) {
         console.log('error getting rank', fetchRank, label);
