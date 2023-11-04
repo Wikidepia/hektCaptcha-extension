@@ -654,7 +654,15 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         return await refresh();
       }
 
-      let labelFound = false;
+      let exampleConfidences = [];
+      let exampleURL = '';
+      const challengeExample = document.querySelector(
+        'div.challenge-example > div.image > div.image'
+      );
+      if (challengeExample) {
+        exampleURL = get_image_url(challengeExample);
+      }
+
       for (let i = 0; i < ranks.length; i++) {
         const rankLabel = ranks[i];
         const modelURL = `https://hekt-static.akmal.dev/classify/${rankLabel}.ort`;
@@ -670,33 +678,58 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
           Buffer.from(modelBuffer)
         );
 
-        // Solve task
-        for (let i = 0; i < urls.length; i++) {
-          if (!cells[i].isConnected) {
-            return;
-          }
-
-          // Find index of maximum value in output array
+        if (exampleURL) {
           const output = await classifyImage(
             featSession,
             classifierSession,
-            urls[i]
+            exampleURL
           );
-          const argmaxValue = output.indexOf(Math.max(...output));
-
-          // If argmaxValue is 1, click on cell (if it is not already selected)
-          if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
-            labelFound = true;
-            await Time.sleep(settings.hcaptcha_click_delay_time);
-            simulateMouseClick(cells[i]);
-          }
-        }
-
-        if (labelFound) {
-          await Time.sleep(settings.hcaptcha_solve_delay_time);
-          return submit();
+          const confidence = softmax(output);
+          exampleConfidences.push(confidence[1]);
         }
       }
+
+      // Solve with highest rank label model
+      const highestRank =
+        ranks[exampleConfidences.indexOf(Math.max(...exampleConfidences))];
+      console.debug('highest rank', highestRank);
+      const fetchModel = await fetch(
+        `https://hekt-static.akmal.dev/classify/${highestRank}.ort`
+      );
+
+      if (fetchModel.status !== 200) {
+        console.log('error getting model', fetchModel, highestRank);
+        return await refresh();
+      }
+
+      const modelBuffer = await fetchModel.arrayBuffer();
+      const classifierSession = await ort.InferenceSession.create(
+        Buffer.from(modelBuffer)
+      );
+
+      // Solve task
+      for (let i = 0; i < urls.length; i++) {
+        if (!cells[i].isConnected) {
+          return;
+        }
+
+        // Find index of maximum value in output array
+        const output = await classifyImage(
+          featSession,
+          classifierSession,
+          urls[i]
+        );
+        const argmaxValue = output.indexOf(Math.max(...output));
+
+        // If argmaxValue is 1, click on cell (if it is not already selected)
+        if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
+          await Time.sleep(settings.hcaptcha_click_delay_time);
+          simulateMouseClick(cells[i]);
+        }
+      }
+
+      await Time.sleep(settings.hcaptcha_solve_delay_time);
+      return submit();
     } else {
       return await refresh();
     }
