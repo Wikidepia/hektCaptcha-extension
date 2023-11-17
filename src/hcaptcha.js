@@ -11,7 +11,7 @@
 // For more information on Content Scripts,
 // See https://developer.chrome.com/extensions/content_scripts
 
-import Jimp from 'jimp';
+import 'jimp';
 import { Time } from './utils';
 require('./hacktimer.js');
 const ort = require('onnxruntime-web');
@@ -95,6 +95,27 @@ function softmax(x) {
   const e_x = x.map((v) => Math.exp(v));
   const sum_e_x = e_x.reduce((a, b) => a + b, 0);
   return e_x.map((v) => v / sum_e_x);
+}
+
+async function classifyImage(featSession, classifierSession, url) {
+  // Read image from URL
+  const image = await Jimp.read(url);
+
+  // Resize image to 256x256 with bilinear interpolation
+  image.resize(256, 256, Jimp.RESIZE_BILINEAR);
+
+  // Convert image data to tensor
+  const input = imageDataToTensor(image, [1, 3, 256, 256]);
+
+  // Feed input tensor to feature extractor model and run it
+  const featOutputs = await featSession.run({ input: input });
+  const feats = featOutputs[featSession.outputNames[0]];
+
+  // Feed feats to classifier
+  const classifierOutputs = await classifierSession.run({
+    input: feats,
+  });
+  return classifierOutputs[classifierSession.outputNames[0]].data;
 }
 
 function simulateMouseClick(element, clientX = null, clientY = null) {
@@ -318,6 +339,15 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         }
         lastUrls = currentUrls;
 
+        // Get specific class based on task
+        const fetchClass = await fetch(
+          `https://hekt-static.akmal.dev/speclass.json`
+        );
+        if (fetchClass.status === 200) {
+          const classJSON = await fetchClass.json();
+          type = classJSON[task] || type;
+        }
+
         clearInterval(check_interval);
         checking = false;
         afterRefresh = false;
@@ -382,13 +412,17 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
     if (type == 'CLASSIFY') {
       // Get label for image
       const label = task
+        .replace('Please click on each image containing', '')
         .replace('Please click each image containing', '')
         .replace('Please click on all images containing', '')
         .replace('Please click on all images of', '')
+        .replace('Please click on the', '')
         .replace('Select all images containing', '')
         .replace('Select all', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
+        .replace(/^the\s+/i, '')
+        .replace(/'|\./g, '')
         .replace(/\s+/g, '_')
         .toLowerCase();
 
@@ -410,24 +444,13 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         if (!cells[i].isConnected) {
           return;
         }
-        // Read image from URL
-        const image = await Jimp.read(urls[i]);
-
-        // Resize image to 256x256 with bilinear interpolation
-        image.resize(256, 256, Jimp.RESIZE_BILINEAR);
-
-        // Convert image data to tensor
-        const input = imageDataToTensor(image, [1, 3, 256, 256]);
-
-        // Feed input tensor to feature extractor model and run it
-        const featOutputs = await featSession.run({ input: input });
-        const feats = featOutputs[featSession.outputNames[0]];
-
-        // Feed feats to classifier
-        const classifierOutputs = await classifierSession.run({ input: feats });
-        const output = classifierOutputs[classifierSession.outputNames[0]].data;
 
         // Find index of maximum value in output array
+        const output = await classifyImage(
+          featSession,
+          classifierSession,
+          urls[i]
+        );
         const argmaxValue = output.indexOf(Math.max(...output));
 
         // If argmaxValue is 1, click on cell (if it is not already selected)
@@ -499,8 +522,9 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         .replace('Please click the', '')
         .trim()
         .replace(/^(a|an)\s+/i, '')
-        .replace(/'/g, '')
+        .replace(/'|\./g, '')
         .replace(/\s+/g, '_')
+        .trim()
         .toLowerCase();
 
       const modelURL = `https://hekt-static.akmal.dev/bounding_box/${label}.ort`;
@@ -540,7 +564,7 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
       // [topK, ioUThreshold, scoreThreshold]
       const config = new ort.Tensor(
         'float32',
-        new Float32Array([1, 0.25, 0.1])
+        new Float32Array([10, 0.25, 0.001])
       );
       const inputImage = await letterboxImage(image, [640, 640]);
       const inputTensor = imageDataToTensor(
@@ -588,12 +612,125 @@ function simulateMouseClick(element, clientX = null, clientY = null) {
         middleX += cellWidth - cropWidth;
         middleY += cellHeight - cropHeight;
 
+        // Skip if middle coordinate is not in clickable canvas
+        // Approximately 10% of the cell
+        if (middleX < cellWidth * 0.1 || middleY < cellHeight * 0.1) {
+          continue;
+        }
+
         simulateMouseClick(cells[0], middleX, middleY);
         await Time.sleep(settings.hcaptcha_solve_delay_time);
         lastUrls = JSON.stringify([cells[0].toDataURL('image/jpeg')]);
         return submit();
       }
       return await refresh();
+    } else if (type == 'NESTED_CLASSIFY') {
+      // Get label for image
+      const label = task
+        .replace('Please click on each image containing', '')
+        .replace('Please click each image containing', '')
+        .replace('Please click on all images containing', '')
+        .replace('Please click on all images of', '')
+        .replace('Please click on the', '')
+        .replace('Select all images containing', '')
+        .replace('Select all', '')
+        .trim()
+        .replace(/^(a|an)\s+/i, '')
+        .replace(/^the\s+/i, '')
+        .replace(/'|\./g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+
+      const rankURL = `https://hekt-static.akmal.dev/nestclass.json`;
+      const fetchRank = await fetch(rankURL);
+      if (fetchRank.status !== 200) {
+        console.log('error getting rank', fetchRank, label);
+        return await refresh();
+      }
+
+      const rankJSON = await fetchRank.json();
+      const ranks = rankJSON[label];
+      if (!ranks) {
+        console.log('error getting rank', fetchRank, label);
+        return await refresh();
+      }
+
+      let exampleConfidences = [];
+      let exampleURL = '';
+      const challengeExample = document.querySelector(
+        'div.challenge-example > div.image > div.image'
+      );
+      if (challengeExample) {
+        exampleURL = get_image_url(challengeExample);
+      }
+
+      for (let i = 0; i < ranks.length; i++) {
+        const rankLabel = ranks[i];
+        const modelURL = `https://hekt-static.akmal.dev/classify/${rankLabel}.ort`;
+        const fetchModel = await fetch(modelURL);
+
+        if (fetchModel.status !== 200) {
+          console.log('error getting model', fetchModel, rankLabel);
+          return await refresh();
+        }
+
+        const modelBuffer = await fetchModel.arrayBuffer();
+        const classifierSession = await ort.InferenceSession.create(
+          Buffer.from(modelBuffer)
+        );
+
+        if (exampleURL) {
+          const output = await classifyImage(
+            featSession,
+            classifierSession,
+            exampleURL
+          );
+          const confidence = softmax(output);
+          exampleConfidences.push(confidence[1]);
+        }
+      }
+
+      // Solve with highest rank label model
+      const highestRank =
+        ranks[exampleConfidences.indexOf(Math.max(...exampleConfidences))];
+      console.debug('highest rank', highestRank);
+      const fetchModel = await fetch(
+        `https://hekt-static.akmal.dev/classify/${highestRank}.ort`
+      );
+
+      if (fetchModel.status !== 200) {
+        console.log('error getting model', fetchModel, highestRank);
+        return await refresh();
+      }
+
+      const modelBuffer = await fetchModel.arrayBuffer();
+      const classifierSession = await ort.InferenceSession.create(
+        Buffer.from(modelBuffer)
+      );
+
+      // Solve task
+      for (let i = 0; i < urls.length; i++) {
+        if (!cells[i].isConnected) {
+          return;
+        }
+
+        // Find index of maximum value in output array
+        const output = await classifyImage(
+          featSession,
+          classifierSession,
+          urls[i]
+        );
+        const argmaxValue = output.indexOf(Math.max(...output));
+
+        // If argmaxValue is 1, click on cell (if it is not already selected)
+        if (argmaxValue === 1 && !is_cell_selected(cells[i])) {
+          await Time.sleep(settings.hcaptcha_click_delay_time);
+          simulateMouseClick(cells[i]);
+        }
+      }
+
+      await Time.sleep(settings.hcaptcha_solve_delay_time);
+      return submit();
     } else {
       return await refresh();
     }

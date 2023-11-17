@@ -1,6 +1,6 @@
 {
   "name": "hektcaptcha-extension",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Automatically solve hCaptcha using AI.",
   "private": true,
   "scripts": {
@@ -27,7 +27,7 @@
     "buffer": "^6.0.3",
     "http-browserify": "^1.7.0",
     "https-browserify": "^1.0.0",
-    "jimp": "^0.16.2",
+    "jimp": "^0.22.10",
     "onnxruntime-common": "^1.14.0",
     "onnxruntime-web": "github:Wikidepia/hektCaptcha-onnxruntime-web",
     "path-browserify": "^1.0.1",
