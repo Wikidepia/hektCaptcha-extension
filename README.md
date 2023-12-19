@@ -1,3 +1,7 @@
+## STATUS: Archived
+
+Update is stopped until further notice, please use other service.
+
 # <img src="public/icons/icon_48.png" width="45" align="left"> hektCaptcha Extension
 
 Automatically solve hCaptcha using AI. Locally, with Chrome extension.
