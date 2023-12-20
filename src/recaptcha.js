@@ -14,6 +14,7 @@
 import 'jimp';
 import { KVStorage, Time } from './utils.js';
 
+require('./hacktimer.js');
 const ort = require('onnxruntime-web');
 
 // Modify ort wasm path
